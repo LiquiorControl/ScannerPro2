@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hacker de Balanza</title>
+    <style>
+        body { background: #111; color: #0f0; font-family: monospace; padding: 20px; }
+        button { font-size: 20px; padding: 15px; background: #004400; color: #0f0; border: 1px solid #0f0; cursor: pointer; }
+        #log { margin-top: 20px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🕵️‍♂️ Sniffer de Protocolo Etekcity</h1>
+    <button onclick="conectar()">INTENTAR CONECTAR</button>
+    <div id="log">Esperando acción...</div>
+
+    <script>
+        function log(txt) { 
+            document.getElementById('log').innerHTML += txt + "\n"; 
+            console.log(txt);
+        }
+
+        async function conectar() {
+            try {
+                log("--- Iniciando Escaneo ---");
+                
+                // Estos son los UUIDs comunes de balanzas genéricas/Etekcity
+                // FFB0 es muy común en balanzas chinas
+                const COMMON_SERVICES = [
+                    "0000ffb0-0000-1000-8000-00805f9b34fb", // Common Scale Service
+                    "0000181d-0000-1000-8000-00805f9b34fb", // Standard Weight
+                    "0000fff0-0000-1000-8000-00805f9b34fb"  // Another common generic
+                ];
+
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: COMMON_SERVICES
+                });
+
+                log("Dispositivo seleccionado: " + device.name);
+                const server = await device.gatt.connect();
+                log("Servidor GATT conectado.");
+
+                // Intentar encontrar el servicio activo
+                let service;
+                let usedUUID;
+                
+                for(let uuid of COMMON_SERVICES) {
+                    try {
+                        service = await server.getPrimaryService(uuid);
+                        usedUUID = uuid;
+                        log("✅ ENCONTRADO Servicio: " + uuid);
+                        break;
+                    } catch(e) {
+                        log("❌ Falló servicio: " + uuid);
+                    }
+                }
+
+                if(!service) {
+                    log("⚠️ No encontré servicios comunes. Necesitamos usar nRF Connect para ver el UUID real.");
+                    return;
+                }
+
+                log("Buscando características...");
+                const characteristics = await service.getCharacteristics();
+                
+                for(let char of characteristics) {
+                    log("  > Char UUID: " + char.uuid);
+                    if(char.properties.notify) {
+                        log("    🔔 Tiene NOTIFY! Suscribiendo...");
+                        await char.startNotifications();
+                        char.addEventListener('characteristicvaluechanged', (event) => {
+                            const value = event.target.value;
+                            let hex = "";
+                            for(let i=0; i<value.byteLength; i++) {
+                                hex += value.getUint8(i).toString(16).padStart(2, '0').toUpperCase() + " ";
+                            }
+                            log("    📡 DATO RECIBIDO (Hex): " + hex);
+                        });
+                    }
+                }
+
+            } catch(error) {
+                log("Error: " + error);
+            }
+        }
+    </script>
+</body>
+</html>
