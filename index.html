@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v28 - Fixed Label</title>
+    <title>Scanner v29 - Sound Login</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -91,11 +91,26 @@
 
         const LoginScreen = ({ onLogin }) => {
             const [pin, setPin] = useState("");
+            
+            const handlePress = (n) => {
+                playSound('blip');
+                const newP = pin + n;
+                setPin(newP);
+                if (newP === "1130") {
+                    playSound('success');
+                    onLogin();
+                }
+                if (newP.length >= 4 && newP !== "1130") {
+                    playSound('error');
+                    setPin("");
+                }
+            };
+
             return (
                 <div className="fixed inset-0 bg-black flex flex-col items-center justify-center p-4 z-50">
                     <div className="mb-8 text-center"><h1 className="text-3xl font-black text-white tracking-tight">SCANNER</h1><p className="text-gray-500 text-sm">Authorized Personnel Only</p></div>
                     <div className="flex gap-4 mb-8">{[0,1,2,3].map(i=><div key={i} className={`w-4 h-4 rounded-full border ${pin.length>i?'bg-indigo-500 border-indigo-500':'border-gray-600'}`}></div>)}</div>
-                    <div className="grid grid-cols-3 gap-6">{[1,2,3,4,5,6,7,8,9,0].map(n=><button key={n} onClick={()=>{const newP=pin+n;setPin(newP);if(newP==="1130") onLogin(); if(newP.length>=4 && newP!=="1130") setPin("");}} className={`h-20 w-20 rounded-full text-2xl font-bold text-white bg-gray-900 border border-gray-700 active:bg-indigo-600 ${n===0?'col-start-2':''}`}>{n}</button>)}</div>
+                    <div className="grid grid-cols-3 gap-6">{[1,2,3,4,5,6,7,8,9,0].map(n=><button key={n} onClick={() => handlePress(n)} className={`h-20 w-20 rounded-full text-2xl font-bold text-white bg-gray-900 border border-gray-700 active:bg-indigo-600 ${n===0?'col-start-2':''}`}>{n}</button>)}</div>
                 </div>
             );
         };
@@ -453,7 +468,7 @@
                     <div className="flex justify-between items-center mb-6 relative">
                         <div className="flex flex-col">
                              <h1 className="font-black text-2xl text-white italic leading-none">SCANNER <span className="text-indigo-500">PRO</span></h1>
-                             <span className="text-[10px] text-gray-600 font-mono tracking-widest">v28.0</span>
+                             <span className="text-[10px] text-gray-600 font-mono tracking-widest">v29.0</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
