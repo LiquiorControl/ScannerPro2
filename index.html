@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v17 - Stable</title>
+    <title>Scanner v19 - Etekcity Protocol</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -89,7 +89,7 @@
             Settings: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></IconWrapper>,
             Scale: (p) => <IconWrapper {...p}><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9v3"/></IconWrapper>,
             Wrench: (p) => <IconWrapper {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconWrapper>,
-            Zero: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="M9 9h.01"/><path d="M15 15h.01"/></IconWrapper>
+            Reset: (p) => <IconWrapper {...p}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></IconWrapper>
         };
 
         const LoginScreen = ({ onLogin }) => {
@@ -322,7 +322,7 @@
                                             <div className="text-2xl font-mono font-bold text-white">{(scaleWeight !== null ? scaleWeight : 0)}g</div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button onClick={onZeroScale} className="bg-yellow-600 text-white px-3 rounded font-bold text-xs shadow-lg active:scale-95">ZERO</button>
+                                            <button onClick={onZeroScale} className="bg-yellow-600 text-white px-3 rounded font-bold text-xs shadow-lg active:scale-95 flex items-center gap-1"><Icons.Reset className="w-4 h-4"/> RESET</button>
                                             <button onClick={startScaleCalibration} className="text-[10px] text-blue-400 underline font-bold px-1">Fix</button>
                                             <button onClick={() => onOpenCalibration(item)} className="bg-gray-800 text-indigo-400 px-3 py-2 rounded-lg font-bold text-xs border border-gray-600 active:scale-95"><Icons.Wrench className="w-4 h-4"/></button>
                                             <button onClick={calculateFromWeight} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm active:scale-95 flex items-center gap-2">
@@ -415,7 +415,7 @@
             // BLUETOOTH LOGIC (PERSISTENT)
             const globalConnectScale = async () => {
                 try {
-                    const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['weight_scale', '0000fff0-0000-1000-8000-00805f9b34fb', '0000181d-0000-1000-8000-00805f9b34fb'] });
+                    const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['weight_scale', '00001910-0000-1000-8000-00805f9b34fb', '0000fff0-0000-1000-8000-00805f9b34fb', '0000181d-0000-1000-8000-00805f9b34fb'] });
                     const server = await device.gatt.connect();
                     let service, charUUID;
                     try { service = await server.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb'); charUUID = '0000fff1-0000-1000-8000-00805f9b34fb'; } 
@@ -432,10 +432,27 @@
             const handleScaleData = (event) => {
                 const data = event.target.value;
                 let rawLbsVal = 0;
-                if (data.byteLength > 4 && data.getUint8(0) === 0xA5) { const intVal = data.getUint16(2, true); rawLbsVal = intVal / 1000; } 
-                else if (data.byteLength >= 4) { const w1 = data.getUint16(0, false); if(w1 > 0 && w1 < 10000) rawLbsVal = w1 / 1000; else rawLbsVal = data.getUint16(0, true) / 1000; }
                 
-                // NO FILTER - ALWAYS UPDATE
+                // --- ETEKCITY / VESYNC PROTOCOL DECODING ---
+                if (data.byteLength > 4 && data.getUint8(0) === 0xCF) { 
+                    // Protocolo CF (Común en Etekcity modernas)
+                    // Byte 4 y 5 suelen ser el peso en una unidad interna
+                    const b1 = data.getUint8(4);
+                    const b2 = data.getUint8(5);
+                    const val = (b1 << 8) | b2; 
+                    rawLbsVal = val / 100; // Ajuste empírico
+                } 
+                else if (data.byteLength > 4 && data.getUint8(0) === 0xA5) { 
+                    const intVal = data.getUint16(2, true); 
+                    rawLbsVal = intVal / 1000; 
+                } 
+                else if (data.byteLength >= 4) { 
+                    const w1 = data.getUint16(0, false); 
+                    if(w1 > 0 && w1 < 10000) rawLbsVal = w1 / 1000; 
+                    else rawLbsVal = data.getUint16(0, true) / 1000; 
+                }
+                
+                // ACTUALIZAR SIEMPRE
                 setScaleRawLbs(rawLbsVal); 
             };
 
@@ -450,11 +467,9 @@
 
             // Manual Zero Function
             const handleZeroScale = () => {
-                if (scaleRawLbs !== null) {
-                    const currentRawGrams = scaleRawLbs * conversionFactor;
-                    setScaleOffset(currentRawGrams);
-                    playSound('success');
-                }
+                // HARD RESET: Forget the offset, show RAW weight
+                setScaleOffset(0); 
+                playSound('sub'); 
             };
 
             const updateScaleFactor = (newFactor) => {
@@ -470,7 +485,7 @@
                 window.fb.signInAnonymously(auth);
                 window.fb.onAuthStateChanged(auth, (u) => {
                     if (u) {
-                        setStatus("Cloud Connected ☁️");
+                        setStatus("Cloud ☁️");
                         const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
                         window.fb.onSnapshot(window.fb.doc(db, path, 'master'), (s) => {
                             if(s.exists()) setData(s.data().items);
@@ -550,12 +565,13 @@
             return (
                 <div className="pb-24 pt-4 px-4 max-w-xl mx-auto">
                     <div className="flex justify-between items-center mb-6 relative">
-                        <h1 className="font-black text-2xl text-white italic">SCANNER <span className="text-indigo-500">PRO</span></h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="font-black text-2xl text-white italic">SCANNER <span className="text-indigo-500">PRO</span></h1>
+                            <div className="text-xs font-bold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded border border-emerald-500/30">{status}</div>
+                        </div>
                         
-                        {/* HEADER RIGHT SIDE: CLOUD STATUS + BLUETOOTH + SETTINGS */}
+                        {/* HEADER RIGHT SIDE: BLUETOOTH + SETTINGS */}
                         <div className="flex items-center gap-2">
-                            <div className="text-xs font-bold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded border border-emerald-500/30">Cloud ☁️</div>
-                            
                             {!scaleConnected && <button onClick={globalConnectScale} className="bg-gray-800 text-blue-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all animate-pulse"><Icons.Bluetooth /></button>}
                             
                             <button onClick={() => setShowMenu(!showMenu)} className="bg-gray-800 text-white p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Settings /></button>
