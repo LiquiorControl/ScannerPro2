@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v24 - Manual Weight</title>
+    <title>Scanner v26 - Version Tag</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -289,12 +289,20 @@
                                     <Icons.Wrench /> ⚠️ SETUP WEIGHTS
                                 </button>
                             ) : (
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <input type="number" placeholder="Enter Grams" className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white font-mono text-center focus:border-indigo-500 outline-none" value={manualGrams} onChange={e=>setManualGrams(e.target.value)} />
-                                        <div className="absolute right-3 top-3 text-gray-500 text-xs font-bold">g</div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="text-xs text-gray-500 font-bold uppercase">Weight Calc</span>
+                                        <button onClick={() => onOpenCalibration(item)} className="text-xs text-indigo-400 font-bold underline flex items-center gap-1 hover:text-indigo-300">
+                                            <Icons.Wrench size={12} /> Edit Setup
+                                        </button>
                                     </div>
-                                    <button onClick={calculateFromManual} className="bg-indigo-600 text-white px-6 rounded-xl font-bold text-sm shadow-lg active:scale-95 border border-indigo-500/50 flex items-center gap-2"><Icons.Scale className="w-4 h-4" /> CALC</button>
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <input type="number" placeholder="Enter Grams" className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white font-mono text-center focus:border-indigo-500 outline-none" value={manualGrams} onChange={e=>setManualGrams(e.target.value)} />
+                                            <div className="absolute right-3 top-3 text-gray-500 text-xs font-bold">g</div>
+                                        </div>
+                                        <button onClick={calculateFromManual} className="bg-indigo-600 text-white px-6 rounded-xl font-bold text-sm shadow-lg active:scale-95 border border-indigo-500/50 flex items-center gap-2"><Icons.Scale className="w-4 h-4" /> CALC</button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -346,7 +354,7 @@
             const [scanning, setScanning] = useState(false);
             const [editItem, setEditItem] = useState(null);
             const [showLoc, setShowLoc] = useState(false);
-            const [showMenu, setShowMenu] = useState(false); // Menu State
+            const [showMenu, setShowMenu] = useState(false);
             const [showCheck, setShowCheck] = useState(false);
             const [showPremium, setShowPremium] = useState(false);
             const [showPurchases, setShowPurchases] = useState(false);
@@ -442,9 +450,9 @@
             return (
                 <div className="pb-24 pt-4 px-4 max-w-xl mx-auto">
                     <div className="flex justify-between items-center mb-6 relative">
-                        <div className="flex items-center gap-3">
-                            <h1 className="font-black text-2xl text-white italic">SCANNER <span className="text-indigo-500">PRO</span></h1>
-                            <div className="text-xs font-bold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded border border-emerald-500/30">Cloud ☁️</div>
+                        <div className="flex flex-col">
+                             <h1 className="font-black text-2xl text-white italic leading-none">SCANNER <span className="text-indigo-500">PRO</span></h1>
+                             <span className="text-[10px] text-gray-600 font-mono tracking-widest">v26.0</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
