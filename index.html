@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v14 - Zero & Flow Fix</title>
+    <title>Scanner v15 - Menu Update</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -19,11 +19,14 @@
         :root { --theme-font: 'Outfit', sans-serif; }
         body { background: #000000; color: #f8fafc; font-family: var(--theme-font), system-ui; min-height: 100vh; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; }
         input, select { background-color: rgba(20,20,20,1) !important; border-color: #333 !important; color: white !important; font-size: 16px !important; }
-        .animate-in { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .animate-in { animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .bluetooth-glow { box-shadow: 0 0 15px #3b82f6; border-color: #60a5fa; }
         #reader { border-radius: 1.5rem !important; overflow: hidden; width: 100% !important; }
         #reader video { object-fit: cover; border-radius: 1.5rem; }
+        
+        /* Menu Backdrop */
+        .menu-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
     </style>
 </head>
 <body>
@@ -85,8 +88,9 @@
             Barcode: (p) => <IconWrapper {...p}><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></IconWrapper>,
             ShoppingCart: (p) => <IconWrapper {...p}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></IconWrapper>,
             Bluetooth: (p) => <IconWrapper {...p}><path d="m7 7 10 10-5 5V2l5 5L7 17"/></IconWrapper>,
-            Settings: (p) => <IconWrapper {...p}><path d="M12.22 2h-.44a2 2 0 0 1-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconWrapper>,
-            Scale: (p) => <IconWrapper {...p}><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9v3"/></IconWrapper>
+            Settings: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></IconWrapper>,
+            Scale: (p) => <IconWrapper {...p}><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9v3"/></IconWrapper>,
+            Wrench: (p) => <IconWrapper {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconWrapper>
         };
 
         const LoginScreen = ({ onLogin }) => {
@@ -270,15 +274,12 @@
             };
 
             const confirmScaleCalibration = () => {
-                // If the App sees 500 but user types 1300
-                // New Factor = CurrentFactor * (1300 / 500)
                 const realGrams = parseFloat(calibVal);
-                if (realGrams && scaleRawLbs) { // Use raw lbs here for precision
+                if (realGrams && scaleRawLbs) { 
                     const newFactor = realGrams / scaleRawLbs;
                     localStorage.setItem('scale_factor', newFactor);
                     setCalibratingScale(false);
                     playSound('success');
-                    // Update global state via callback instead of reload
                     onManualScaleUpdate(newFactor);
                 }
             };
@@ -318,7 +319,7 @@
                                         </div>
                                         <div className="flex gap-2">
                                             <button onClick={startScaleCalibration} className="text-[10px] text-blue-400 underline font-bold px-1">Fix Weight</button>
-                                            <button onClick={() => onOpenCalibration(item)} className="bg-gray-800 text-indigo-400 px-3 py-2 rounded-lg font-bold text-xs border border-gray-600 active:scale-95"><Icons.Settings className="w-4 h-4"/></button>
+                                            <button onClick={() => onOpenCalibration(item)} className="bg-gray-800 text-indigo-400 px-3 py-2 rounded-lg font-bold text-xs border border-gray-600 active:scale-95"><Icons.Wrench className="w-4 h-4"/></button>
                                             <button onClick={calculateFromWeight} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm active:scale-95 flex items-center gap-2">
                                                 <Icons.Scale className="w-4 h-4"/> USE
                                             </button>
@@ -385,6 +386,7 @@
             const [scanning, setScanning] = useState(false);
             const [editItem, setEditItem] = useState(null);
             const [showLoc, setShowLoc] = useState(false);
+            const [showMenu, setShowMenu] = useState(false); // Menu State
             const [showCheck, setShowCheck] = useState(false);
             const [showPremium, setShowPremium] = useState(false);
             const [showPurchases, setShowPurchases] = useState(false);
@@ -528,15 +530,23 @@
 
             return (
                 <div className="pb-24 pt-4 px-4 max-w-xl mx-auto">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex justify-between items-center mb-6 relative">
                         <h1 className="font-black text-2xl text-white italic">SCANNER <span className="text-indigo-500">PRO</span></h1>
                         <div className="flex items-center gap-2">
                             {!scaleConnected && <button onClick={globalConnectScale} className="bg-gray-800 text-blue-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all animate-pulse"><Icons.Bluetooth /></button>}
-                            <button onClick={handleBackup} className="bg-gray-800 text-emerald-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Save /></button>
-                            <button onClick={() => setShowPurchases(true)} className="bg-gray-800 text-emerald-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Package /></button>
-                            <button onClick={() => setShowPremium(true)} className="bg-gray-800 text-yellow-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Star /></button>
-                            <button onClick={() => setShowCheck(true)} className="bg-gray-800 text-white p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.List /></button>
+                            <button onClick={() => setShowMenu(!showMenu)} className="bg-gray-800 text-white p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Settings /></button>
                         </div>
+                        {showMenu && (
+                            <>
+                                <div className="menu-backdrop" onClick={() => setShowMenu(false)}></div>
+                                <div className="absolute top-14 right-0 bg-[#1D1F23] border border-gray-700 p-2 rounded-xl shadow-2xl z-50 flex flex-col gap-2 w-48 animate-in">
+                                    <button onClick={() => { handleBackup(); setShowMenu(false); }} className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg text-white font-bold"><Icons.Save className="text-emerald-400" /> Backup</button>
+                                    <button onClick={() => { setShowPurchases(true); setShowMenu(false); }} className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg text-white font-bold"><Icons.Package className="text-emerald-400" /> Purchases</button>
+                                    <button onClick={() => { setShowPremium(true); setShowMenu(false); }} className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg text-white font-bold"><Icons.Star className="text-yellow-400" /> Bottle Control</button>
+                                    <button onClick={() => { setShowCheck(true); setShowMenu(false); }} className="flex items-center gap-3 p-3 hover:bg-gray-700 rounded-lg text-white font-bold"><Icons.List className="text-white" /> Check List</button>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="text-xs font-mono text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-2 py-1 rounded w-fit mb-4">{status}</div>
