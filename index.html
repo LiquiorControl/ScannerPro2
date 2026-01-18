@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v22 - Final Fix</title>
+    <title>Scanner v24 - Manual Weight</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -21,7 +21,6 @@
         input, select { background-color: rgba(20,20,20,1) !important; border-color: #333 !important; color: white !important; font-size: 16px !important; }
         .animate-in { animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .bluetooth-glow { box-shadow: 0 0 15px #3b82f6; border-color: #60a5fa; }
         #reader { border-radius: 1.5rem !important; overflow: hidden; width: 100% !important; }
         #reader video { object-fit: cover; border-radius: 1.5rem; }
         .menu-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
@@ -65,11 +64,9 @@
                 if (type === 'error') { osc.type = "sawtooth"; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3); osc.start(now); osc.stop(now + 0.3); }
                 if (type === 'add') { osc.type = "sine"; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2); osc.start(now); osc.stop(now + 0.2); }
                 if (type === 'sub') { osc.type = "square"; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.15); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25); osc.start(now); osc.stop(now + 0.25); }
-                if (type === 'blip') { osc.type = "sine"; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05); gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05); osc.start(now); osc.stop(now + 0.05); }
             } catch (e) {}
         };
 
-        // --- ICONS ---
         const IconWrapper = ({ children, className }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>);
         const Icons = {
             Scan: (p) => <IconWrapper {...p}><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="6" x="7" y="9" rx="1"/></IconWrapper>,
@@ -86,11 +83,9 @@
             Package: (p) => <IconWrapper {...p}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
             Barcode: (p) => <IconWrapper {...p}><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></IconWrapper>,
             ShoppingCart: (p) => <IconWrapper {...p}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></IconWrapper>,
-            Bluetooth: (p) => <IconWrapper {...p}><path d="m7 7 10 10-5 5V2l5 5L7 17"/></IconWrapper>,
             Settings: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></IconWrapper>,
             Scale: (p) => <IconWrapper {...p}><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 9v3"/></IconWrapper>,
-            Wrench: (p) => <IconWrapper {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconWrapper>,
-            Reset: (p) => <IconWrapper {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></IconWrapper>
+            Wrench: (p) => <IconWrapper {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconWrapper>
         };
 
         const LoginScreen = ({ onLogin }) => {
@@ -203,25 +198,24 @@
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-indigo-900/20 p-3 rounded-lg border border-indigo-500/30 text-center mb-6">
-                            <div className="text-xs text-indigo-300 uppercase font-bold">Net Liquid</div>
-                            <div className="text-2xl font-black text-indigo-400 font-mono">{(full && empty) ? (full - empty) + 'g' : '---'}</div>
-                        </div>
                         <button onClick={() => { if(full && empty) onSave(item.id, full, empty); }} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">SAVE CONFIG</button>
                     </div>
                 </div>
             );
         };
 
-        // --- GLOBAL BLUETOOTH & QUICK EDIT ---
-        const QuickEditModal = ({ item, scaleWeight, scaleRawLbs, scaleConnected, onConnectScale, onClose, onContinue, onUpdate, initialLocation, initialSubZone, onOpenCalibration, onManualScaleUpdate, onZeroScale }) => {
+        // --- GLOBAL QUICK EDIT ---
+        const QuickEditModal = ({ item, onClose, onContinue, onUpdate, initialLocation, initialSubZone, onOpenCalibration }) => {
             const [value, setValue] = useState(0);
             const zones = ZONES_CONFIG[initialLocation] || [];
             const subZoneId = initialSubZone || (zones[0]?.id);
             const subZoneLabel = zones.find(z=>z.id===subZoneId)?.label;
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
-            const [manualWeightInput, setManualWeightInput] = useState("");
             
+            // Check if we are in "Shelf Open" to show manual weight features
+            const isOpenZone = (initialSubZone === 'bar1_shelf_open');
+            const [manualGrams, setManualGrams] = useState("");
+
             // Session tracking
             const [startVal] = useState(() => parseFloat(item[targetField]) || 0);
 
@@ -244,19 +238,21 @@
                 if(delta>0) playSound('add'); else playSound('sub');
             };
 
-            const calculateFromWeight = (weightToUse) => {
-                const w = weightToUse !== null ? weightToUse : scaleWeight;
-                if(w === null) return;
+            // Manual Weight Calculation
+            const calculateFromManual = () => {
+                const grams = parseFloat(manualGrams);
+                if(!grams && grams !== 0) return;
+
                 const full = parseFloat(item.weight_full);
                 const empty = parseFloat(item.weight_empty);
                 
                 if (!full || !empty) {
-                    onOpenCalibration(item);
+                    onOpenCalibration(item); // Force Setup
                     return;
                 }
                 
                 const netLiquid = full - empty;
-                const currentLiquid = w - empty;
+                const currentLiquid = grams - empty;
                 
                 let calculatedUnits = currentLiquid / netLiquid;
                 if (calculatedUnits < 0) calculatedUnits = 0;
@@ -264,28 +260,8 @@
                 const finalVal = Math.round(calculatedUnits * 100) / 100;
                 updateValue(finalVal);
                 playSound('success');
+                setManualGrams(""); // Clear input after use
             };
-
-            // ---- FIXED CALIBRATION LOGIC (NO RELOAD) ----
-            const [calibratingScale, setCalibratingScale] = useState(false);
-            const [calibVal, setCalibVal] = useState("");
-            
-            const startScaleCalibration = () => {
-                setCalibVal(scaleWeight || "");
-                setCalibratingScale(true);
-            };
-
-            const confirmScaleCalibration = () => {
-                const realGrams = parseFloat(calibVal);
-                if (realGrams && scaleRawLbs) { 
-                    const newFactor = realGrams / scaleRawLbs;
-                    localStorage.setItem('scale_factor', newFactor);
-                    onManualScaleUpdate(newFactor); 
-                    setCalibratingScale(false);
-                    playSound('success');
-                }
-            };
-            // ----------------------------------------
 
             const sessionDiff = Math.round((value - startVal) * 100) / 100;
             const diffSign = sessionDiff > 0 ? "+" : "";
@@ -305,49 +281,24 @@
 
                     <div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm mb-4"><div className="flex flex-col gap-2 items-end"><button onClick={()=>handleDelta(-12)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 12</button><button onClick={()=>handleDelta(-6)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 6</button><button onClick={()=>handleDelta(-5)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 5</button><button onClick={()=>handleDelta(-1)} className="w-full h-14 bg-red-600 text-white rounded-xl font-black text-2xl shadow-lg border border-red-400">- 1</button></div><div className="flex flex-col gap-2 items-start"><button onClick={()=>handleDelta(12)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 12</button><button onClick={()=>handleDelta(6)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 6</button><button onClick={()=>handleDelta(5)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 5</button><button onClick={()=>handleDelta(1)} className="w-full h-14 bg-emerald-600 text-white rounded-xl font-black text-2xl shadow-lg border border-emerald-400">+ 1</button></div></div><div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm"><button onClick={()=>handleDelta(-0.1)} className="bg-gray-800 text-red-400 h-12 rounded-xl font-bold text-lg border border-gray-700">- 0.1</button><button onClick={()=>handleDelta(0.1)} className="bg-gray-800 text-emerald-400 h-12 rounded-xl font-bold text-lg border border-gray-700">+ 0.1</button></div>
                 
-                    {/* --- SCALE UI SECTION --- */}
-                    <div className="mt-6 w-full px-6 max-w-sm">
-                        {!scaleConnected ? (
-                            <button onClick={onConnectScale} className="w-full py-3 bg-blue-900/30 border border-blue-500/50 rounded-xl text-blue-400 font-bold flex items-center justify-center gap-2 hover:bg-blue-900/50 transition-colors">
-                                <Icons.Bluetooth /> Connect Scale
-                            </button>
-                        ) : (
-                            <div className="bg-blue-900/20 border border-blue-500/50 rounded-xl p-2 flex flex-col gap-2">
-                                {!calibratingScale ? (
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 pl-2">
-                                            {/* Heartbeat Dot */}
-                                            <div className="ping-dot ping-active"></div>
-                                            <div className="text-2xl font-mono font-bold text-white">{(scaleWeight !== null ? scaleWeight : 0)}g</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={onZeroScale} className="bg-yellow-600 text-white px-3 rounded font-bold text-xs shadow-lg active:scale-95 flex items-center gap-1"><Icons.Reset className="w-4 h-4"/> RESET</button>
-                                            <button onClick={startScaleCalibration} className="text-[10px] text-blue-400 underline font-bold px-1">Fix</button>
-                                            <button onClick={() => onOpenCalibration(item)} className="bg-gray-800 text-indigo-400 px-3 py-2 rounded-lg font-bold text-xs border border-gray-600 active:scale-95"><Icons.Wrench className="w-4 h-4"/></button>
-                                            <button onClick={()=>calculateFromWeight(null)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm active:scale-95 flex items-center gap-2">
-                                                <Icons.Scale className="w-4 h-4"/> USE
-                                            </button>
-                                        </div>
+                    {/* --- MANUAL WEIGHT SECTION (ONLY FOR SHELF OPEN) --- */}
+                    {isOpenZone && (
+                        <div className="mt-6 w-full px-6 max-w-sm border-t border-gray-800 pt-4">
+                            {(!item.weight_full || !item.weight_empty) ? (
+                                <button onClick={() => onOpenCalibration(item)} className="w-full py-3 bg-yellow-900/30 border border-yellow-500/50 rounded-xl text-yellow-400 font-bold flex items-center justify-center gap-2 hover:bg-yellow-900/50 transition-colors animate-pulse">
+                                    <Icons.Wrench /> ⚠️ SETUP WEIGHTS
+                                </button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <input type="number" placeholder="Enter Grams" className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white font-mono text-center focus:border-indigo-500 outline-none" value={manualGrams} onChange={e=>setManualGrams(e.target.value)} />
+                                        <div className="absolute right-3 top-3 text-gray-500 text-xs font-bold">g</div>
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col gap-2 animate-in">
-                                        <div className="text-white text-sm text-center font-bold">Fix Scale Reading</div>
-                                        <div className="text-gray-400 text-xs text-center">Type the REAL weight shown on scale:</div>
-                                        <div className="flex gap-2">
-                                            <input type="number" value={calibVal} onChange={e=>setCalibVal(e.target.value)} className="flex-1 bg-black border border-blue-500 rounded px-2 py-2 text-white font-mono font-bold text-center" autoFocus />
-                                            <button onClick={confirmScaleCalibration} className="bg-green-600 text-white px-3 rounded font-bold">OK</button>
-                                            <button onClick={()=>setCalibratingScale(false)} className="bg-red-900/50 text-red-200 px-3 rounded font-bold">X</button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {/* MANUAL INPUT FALLBACK */}
-                        <div className="flex gap-2 mt-2">
-                            <input type="number" placeholder="Manual g" className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-2 text-white font-mono text-sm text-center focus:border-indigo-500 outline-none h-10" value={manualWeightInput} onChange={e=>setManualWeightInput(e.target.value)} />
-                            <button onClick={() => { if(manualWeightInput) calculateFromWeight(parseFloat(manualWeightInput)); setManualWeightInput(""); }} className="bg-gray-800 text-gray-300 px-3 rounded-lg font-bold text-xs border border-gray-700 h-10 active:scale-95">USE MANUAL</button>
+                                    <button onClick={calculateFromManual} className="bg-indigo-600 text-white px-6 rounded-xl font-bold text-sm shadow-lg active:scale-95 border border-indigo-500/50 flex items-center gap-2"><Icons.Scale className="w-4 h-4" /> CALC</button>
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    )}
                     {/* ------------------------ */}
 
                     </div><button onClick={onContinue} className="m-4 bg-indigo-600 text-white font-black text-xl h-14 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">DONE <span className="text-xs font-normal opacity-70">(Next Scan)</span></button></div></div>
@@ -403,67 +354,6 @@
             const [status, setStatus] = useState("Connecting...");
             const [pendingBarcode, setPendingBarcode] = useState(null);
             const [calibratingItem, setCalibratingItem] = useState(null);
-            
-            // GLOBAL SCALE STATE
-            const [scaleConnected, setScaleConnected] = useState(false);
-            const [scaleWeight, setScaleWeight] = useState(0); // DEFAULT 0
-            const [scaleRawLbs, setScaleRawLbs] = useState(0);
-            const [scaleChar, setScaleChar] = useState(null);
-            const [scaleOffset, setScaleOffset] = useState(0); // SOFTWARE TARE
-            
-            const [conversionFactor, setConversionFactor] = useState(() => {
-                const saved = localStorage.getItem('scale_factor');
-                return saved ? parseFloat(saved) : 453.592;
-            });
-
-            // BLUETOOTH LOGIC (PERSISTENT)
-            const globalConnectScale = async () => {
-                try {
-                    const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['weight_scale', '0000fff0-0000-1000-8000-00805f9b34fb', '0000181d-0000-1000-8000-00805f9b34fb'] });
-                    const server = await device.gatt.connect();
-                    let service, charUUID;
-                    try { service = await server.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb'); charUUID = '0000fff1-0000-1000-8000-00805f9b34fb'; } 
-                    catch(e) { try { service = await server.getPrimaryService('weight_scale'); charUUID = 'weight_measurement'; } catch(e2) { throw new Error("No service"); } }
-                    const characteristic = await service.getCharacteristic(charUUID);
-                    await characteristic.startNotifications();
-                    characteristic.addEventListener('characteristicvaluechanged', handleScaleData);
-                    setScaleChar(characteristic);
-                    setScaleConnected(true);
-                    playSound('success');
-                } catch (error) { console.error(error); playSound('error'); }
-            };
-
-            const handleScaleData = (event) => {
-                const data = event.target.value;
-                let rawLbsVal = 0;
-                if (data.byteLength > 4 && data.getUint8(0) === 0xA5) { const intVal = data.getUint16(2, true); rawLbsVal = intVal / 1000; } 
-                else if (data.byteLength >= 4) { const w1 = data.getUint16(0, false); if(w1 > 0 && w1 < 10000) rawLbsVal = w1 / 1000; else rawLbsVal = data.getUint16(0, true) / 1000; }
-                
-                // NO FILTER - ALWAYS UPDATE
-                setScaleRawLbs(rawLbsVal); 
-            };
-
-            // Calculate final weight with Offset (Software Tare)
-            useEffect(() => {
-                if (scaleRawLbs !== null) {
-                    const rawGrams = scaleRawLbs * conversionFactor;
-                    const finalGrams = Math.max(0, Math.round(rawGrams - scaleOffset));
-                    setScaleWeight(finalGrams);
-                }
-            }, [scaleRawLbs, conversionFactor, scaleOffset]);
-
-            // Manual Zero Function
-            const handleZeroScale = () => {
-                // HARD RESET: Forget the offset, show RAW weight
-                setScaleOffset(0); 
-                playSound('sub'); 
-            };
-
-            const updateScaleFactor = (newFactor) => {
-                setConversionFactor(newFactor);
-                // Also reset offset on re-calibration to avoid confusion
-                setScaleOffset(0); 
-            };
 
             useEffect(() => {
                 const app = window.fb.initializeApp(FIREBASE_CONFIG);
@@ -557,10 +447,7 @@
                             <div className="text-xs font-bold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded border border-emerald-500/30">Cloud ☁️</div>
                         </div>
                         
-                        {/* HEADER RIGHT SIDE: BLUETOOTH + SETTINGS */}
                         <div className="flex items-center gap-2">
-                            {!scaleConnected && <button onClick={globalConnectScale} className="bg-gray-800 text-blue-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all animate-pulse"><Icons.Bluetooth /></button>}
-                            
                             <button onClick={() => setShowMenu(!showMenu)} className="bg-gray-800 text-white p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Settings /></button>
                         </div>
 
@@ -634,16 +521,10 @@
                     {editItem && (
                         <QuickEditModal 
                             item={editItem} 
-                            scaleWeight={scaleWeight}
-                            scaleRawLbs={scaleRawLbs}
-                            scaleConnected={scaleConnected}
-                            onConnectScale={globalConnectScale}
                             initialLocation={loc} 
                             initialSubZone={subZone} 
                             onClose={() => setEditItem(null)} 
                             onOpenCalibration={setCalibratingItem}
-                            onManualScaleUpdate={updateScaleFactor}
-                            onZeroScale={handleZeroScale}
                             onContinue={() => {
                                 setEditItem(null);
                                 setTimeout(() => setScanning(true), 300); 
