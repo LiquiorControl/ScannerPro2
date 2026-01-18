@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v13 - Zero Fix</title>
+    <title>Scanner v14 - Zero & Flow Fix</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -21,8 +21,7 @@
         input, select { background-color: rgba(20,20,20,1) !important; border-color: #333 !important; color: white !important; font-size: 16px !important; }
         .animate-in { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .bluetooth-glow { box-shadow: 0 0 10px #3b82f6; animation: pulse-blue 1.5s infinite; }
-        @keyframes pulse-blue { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .bluetooth-glow { box-shadow: 0 0 15px #3b82f6; border-color: #60a5fa; }
         #reader { border-radius: 1.5rem !important; overflow: hidden; width: 100% !important; }
         #reader video { object-fit: cover; border-radius: 1.5rem; }
     </style>
@@ -211,7 +210,7 @@
         };
 
         // --- GLOBAL BLUETOOTH & QUICK EDIT ---
-        const QuickEditModal = ({ item, scaleWeight, scaleConnected, onConnectScale, onClose, onContinue, onUpdate, initialLocation, initialSubZone, onOpenCalibration }) => {
+        const QuickEditModal = ({ item, scaleWeight, scaleConnected, onConnectScale, onClose, onContinue, onUpdate, initialLocation, initialSubZone, onOpenCalibration, scaleRawLbs, onManualScaleUpdate }) => {
             const [value, setValue] = useState(0);
             const zones = ZONES_CONFIG[initialLocation] || [];
             const subZoneId = initialSubZone || (zones[0]?.id);
@@ -274,17 +273,13 @@
                 // If the App sees 500 but user types 1300
                 // New Factor = CurrentFactor * (1300 / 500)
                 const realGrams = parseFloat(calibVal);
-                if (realGrams && scaleWeight) {
-                    const currentFactor = parseFloat(localStorage.getItem('scale_factor') || 453.592);
-                    const correctionRatio = realGrams / scaleWeight; 
-                    const newFactor = currentFactor * correctionRatio;
-                    
+                if (realGrams && scaleRawLbs) { // Use raw lbs here for precision
+                    const newFactor = realGrams / scaleRawLbs;
                     localStorage.setItem('scale_factor', newFactor);
                     setCalibratingScale(false);
                     playSound('success');
-                    // Force refresh? The global state will need to update eventually or reload. 
-                    // Ideally we'd pass a callback to App to update conversionFactor, but reload works for now.
-                    window.location.reload(); 
+                    // Update global state via callback instead of reload
+                    onManualScaleUpdate(newFactor);
                 }
             };
             // ----------------------------------------
@@ -402,6 +397,7 @@
             const [scaleConnected, setScaleConnected] = useState(false);
             const [scaleWeight, setScaleWeight] = useState(null);
             const [scaleRawLbs, setScaleRawLbs] = useState(null);
+            const [scaleChar, setScaleChar] = useState(null);
             const [conversionFactor, setConversionFactor] = useState(() => {
                 const saved = localStorage.getItem('scale_factor');
                 return saved ? parseFloat(saved) : 453.592;
@@ -418,6 +414,7 @@
                     const characteristic = await service.getCharacteristic(charUUID);
                     await characteristic.startNotifications();
                     characteristic.addEventListener('characteristicvaluechanged', handleScaleData);
+                    setScaleChar(characteristic);
                     setScaleConnected(true);
                     playSound('success');
                 } catch (error) { console.error(error); playSound('error'); }
@@ -429,7 +426,7 @@
                 if (data.byteLength > 4 && data.getUint8(0) === 0xA5) { const intVal = data.getUint16(2, true); rawLbsVal = intVal / 1000; } 
                 else if (data.byteLength >= 4) { const w1 = data.getUint16(0, false); if(w1 > 0 && w1 < 10000) rawLbsVal = w1 / 1000; else rawLbsVal = data.getUint16(0, true) / 1000; }
                 
-                // FORCE UPDATE ALWAYS, EVEN IF 0
+                // FORCE UPDATE ALWAYS, EVEN IF 0 (Fix for zero issue)
                 setScaleRawLbs(rawLbsVal); 
             };
 
@@ -517,6 +514,11 @@
                 playSound('success');
             };
 
+            // UPDATE GLOBAL FACTOR WITHOUT RELOAD
+            const updateScaleFactor = (newFactor) => {
+                setConversionFactor(newFactor);
+            };
+
             const filteredData = useMemo(() => {
                 const term = search.toLowerCase();
                 return data.map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(term)) })).filter(c => c.items.length > 0);
@@ -597,12 +599,14 @@
                         <QuickEditModal 
                             item={editItem} 
                             scaleWeight={scaleWeight}
+                            scaleRawLbs={scaleRawLbs}
                             scaleConnected={scaleConnected}
                             onConnectScale={globalConnectScale}
                             initialLocation={loc} 
                             initialSubZone={subZone} 
                             onClose={() => setEditItem(null)} 
                             onOpenCalibration={setCalibratingItem}
+                            onManualScaleUpdate={updateScaleFactor}
                             onContinue={() => {
                                 setEditItem(null);
                                 setTimeout(() => setScanning(true), 300); 
