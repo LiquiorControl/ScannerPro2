@@ -3,1730 +3,469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Bar Control v7.5.1</title>
+    <title>Scanner Móvil v7 - Etekcity Ready</title>
     
-    <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- 3. Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- 4. Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-    <!-- 5. Chart.js (Esencial para el gráfico circular) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    
-    <!-- 6. jsPDF & AutoTable (Para generación de PDF) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- 7. Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        /* DARK THEME GLOBAL */
-        :root {
-            --theme-font: 'Roboto', sans-serif;
-            --theme-text-color: #f0f6fc;
-        }
-        
-        body { 
-            background-color: #0A0A0A; 
-            color: var(--theme-text-color); 
-            font-family: var(--theme-font), system-ui, sans-serif; 
-            min-height: 100vh; 
-            overscroll-behavior-y: none; /* Prevenir rebote en móvil */
-        }
-        
-        .animate-in { animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(29, 31, 35, 0.5); }
-        ::-webkit-scrollbar-thumb { background: #3A4048; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #484f58; }
-        
-        /* Scanner */
-        #reader { border: none !important; }
-        #reader video { border-radius: 12px; object-fit: cover; width: 100% !important; }
-        
-        /* Custom size h-21 w-21 */
-        .h-21 { height: 5.25rem; } /* 84px */
-        .w-21 { width: 5.25rem; } /* 84px */
-        
-        /* Location Tabs Scroll Hide */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* FIX: Canvas moved off-screen but kept 'visible' for rendering engine */
-        #pdf-chart-canvas { 
-            position: fixed; 
-            left: 100vw; /* Push off screen to the right */
-            top: 0;
-            z-index: -100;
-            background-color: white; /* Ensure white background */
-            display: block; /* Ensure it's part of layout */
-        }
-        
-        /* Saving Indicator Pulse */
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .saving-pulse { animation: pulse-green 2s infinite; }
-
-        /* Login Screen Animation */
-        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-
-        /* Floating Number Animation */
-        @keyframes float-up {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-20px) scale(1.2); }
-        }
-        .animate-float { animation: float-up 0.8s ease-out forwards; }
+        :root { --theme-font: 'Outfit', sans-serif; }
+        body { background: #000000; color: #f8fafc; font-family: var(--theme-font), system-ui; min-height: 100vh; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; }
+        input, select { background-color: rgba(20,20,20,1) !important; border-color: #333 !important; color: white !important; font-size: 16px !important; }
+        .animate-in { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        #reader { border-radius: 1.5rem !important; overflow: hidden; width: 100% !important; }
+        #reader video { object-fit: cover; border-radius: 1.5rem; }
+        .bluetooth-glow { animation: btPulse 2s infinite; }
+        @keyframes btPulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div style="height: 100vh; display: flex; align-items: center; justify-content: center; color: rgba(240, 246, 252, 0.5); flex-direction: column; gap: 1rem;">
-            <div class="animate-pulse">Loading Master Bar Control v7.5.1...</div>
-        </div>
-    </div>
-    
-    <!-- Hidden Canvas for generating chart images for PDF -->
-    <canvas id="pdf-chart-canvas" width="800" height="600"></canvas>
+    <div id="root"></div>
 
-    <!-- FIREBASE MODULES -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        
-        window.fb = { initializeApp, getFirestore, doc, setDoc, onSnapshot, getDoc, getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken, collection };
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        window.fb = { initializeApp, getFirestore, doc, onSnapshot, setDoc, getAuth, signInAnonymously, onAuthStateChanged };
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef, Component } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
-        // ==========================================
-        // 🛠️ SAFE STORAGE HELPER
-        // ==========================================
-        const SafeStorage = {
-            getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { console.warn("Storage access denied"); return null; } },
-            setItem: (key, value) => { try { localStorage.setItem(key, value); } catch (e) { console.warn("Storage write denied"); } }
+        // ✅ TUS CREDENCIALES
+        const FIREBASE_CONFIG = { 
+            apiKey: "AIzaSyDqdJcKILp5kQ4sTxVm8Ch5E7oXfMD3BAM",
+            authDomain: "master-control-palmas.firebaseapp.com",
+            projectId: "master-control-palmas",
+            storageBucket: "master-control-palmas.firebasestorage.app",
+            messagingSenderId: "681752784684",
+            appId: "1:681752784684:web:e4a4a4ce96d587380d4689"
         };
 
-        const APP_VERSION = "7.5.1";
-        const BUILD_ID = new Date().toISOString().split('T')[0].replace(/-/g, '');
-
-        const FIREBASE_CONFIG = { apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
-        const ENV_APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const ENV_FIREBASE_CONFIG = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const ENV_AUTH_TOKEN = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // --- RECIPES ---
-        const COCKTAIL_RECIPES = [
-            { name: "Sex on the Beach", ingredients: [{ name: "Barton Naturals Vodka", qty: 1 }, { name: "Peach Schnapps Boston", qty: 1 }] },
-            { name: "Green Tea Shot", ingredients: [{ name: "Jameson", qty: 0.5 }, { name: "Peach Schnapps Boston", qty: 0.5 }] },
-            { name: "Tequila Sunrise", ingredients: [{ name: "Montezuma White", qty: 1 }] },
-            { name: "Caribbean Drop", ingredients: [{ name: "Bacardi Limon", qty: 1 }] },
-            { name: "Margarita", ingredients: [{ name: "Montezuma White", qty: 1 }] },
-            { name: "Strawberry Margarita", ingredients: [{ name: "Montezuma White", qty: 1 }] },
-            { name: "Moscow Mule", ingredients: [{ name: "Barton Naturals Vodka", qty: 1 }] },
-            { name: "Mojito", ingredients: [{ name: "Bacardi Light", qty: 1 }] },
-            { name: "Amaretto Sour", ingredients: [{ name: "Disaronno Amaretto", qty: 2 }] },
-            { name: "Blue MF", ingredients: [{ name: "Long Island Tea Mix", qty: 2 }, { name: "Curacao Blue", qty: 0.5 }] },
-            { name: "Long Island Ice Tea", ingredients: [{ name: "Long Island Tea Mix", qty: 2 }, { name: "Triple Sec Boston", qty: 0.5 }] },
-            { name: "Screwdriver", ingredients: [{ name: "Barton Naturals Vodka", qty: 1 }] },
-            { name: "Cuba Libre", ingredients: [{ name: "Bacardi Light", qty: 1 }] }
-        ];
-
-        // Pitchers
-        const PITCHER_RECIPES = [
-            { name: "Sex on the Beach PITCHER", ingredients: [{ name: "Barton Naturals Vodka", qty: 5 }, { name: "Peach Schnapps Boston", qty: 5 }] }, 
-            { name: "Margarita PITCHER", ingredients: [{ name: "Montezuma White", qty: 5 }, { name: "Peach Schnapps Boston", qty: 5 }] },
-            { name: "Tequila Sunrise PITCHER", ingredients: [{ name: "Montezuma White", qty: 5 }, { name: "Peach Schnapps Boston", qty: 5 }] },
-            { name: "Jameson PITCHER", ingredients: [{ name: "Jameson", qty: 10 }] },
-            { name: "Blue MF PITCHER", ingredients: [{ name: "Long Island Tea Mix", qty: 10 }, { name: "Curacao Blue", qty: 2.5 }] },
-            { name: "Long Island PITCHER", ingredients: [{ name: "Long Island Tea Mix", qty: 10 }, { name: "Triple Sec Boston", qty: 2.5 }] }
-        ];
-
-        const PAR_LEVELS = {
-            // Liquor
-            "Crown Royal Regal": 2, "Apple Crown Royal": 2, "Jack Daniels Black": 3, "Jameson": 2, "WoodFord Reserve": 1,
-            "Buchanans 12": 6, "Johnnie Walker Black": 4, "Grand Old Parr 12": 2, "Hennessy VS": 3, "Tito's Texas Vodka": 3,
-            "Remy Martin": 2, "Grey Goose": 3, "Casamigos Blanco": 4, "Casamigos Reposado": 2, "Espolon Blanco": 2,
-            "Espolon Reposado": 1, "Don Julio Blanco": 6, "Don Julio Reposado": 2, "Patron Silver": 6, "Patron Reposado": 1,
-            "Fernet Branca": 2, "Brugal Anejo": 2, "Montezuma White": 12, "Barton Naturals Vodka": 12, "Long Island Tea Mix": 6,
-            "Peach Schnapps Boston": 12, "Triple Sec Boston": 12, "Bacardi Light": 6, "Capitan Morgan Spice": 2, "Jagermeister": 1, 
-            "Malibu": 6, "Barton Gin": 6, "Curacao Blue": 4, "Sour Apple": 4, "Sour Apple HW": 4, "Sour Cherry Boston": 4,
-            // Beers
-            "Modelo Especial": 600, "Corona": 720, "Michelob Ultra": 72, "Heineken": 48, "Pacifico": 48,
-            // Energy & Seltzer
-            "Red Bull Regular": 96, "Red Bull Sugar Free": 72, "Red Bull Watermelon": 48, "High Noon Variety Pack": 48,
-            // Wines
-            "Cafayate Malbec": 1, "Procecco Zonin": 6, "Sangria": 12,
-            // Non Alcoholic
-            "Coca Cola": 48, "Diet Coke": 24, "Sprite": 48, "Ginger Ale": 24, "Water Bottle": 96
+        const ZONES_CONFIG = {
+            bar1: [ { id: 'bar1_cooler', label: 'Cooler Beer', icon: '🧊' }, { id: 'bar1_small_cooler_1', label: 'Small 1', icon: '❄️' }, { id: 'bar1_small_cooler_2', label: 'Small 2', icon: '❄️' }, { id: 'bar1_reaching', label: 'Reaching', icon: '✋' }, { id: 'bar1_shelf_full', label: 'Shelf Full', icon: '🍾' }, { id: 'bar1_shelf_open', label: 'Shelf Open', icon: '🥃' }, { id: 'bar1_well_1', label: 'Well 1', icon: '🥃' }, { id: 'bar1_well_2', label: 'Well 2', icon: '🥃' } ],
+            bar2: [ { id: 'bar2_cooler', label: 'Cooler', icon: '🧊' }, { id: 'bar2_small_cooler', label: 'Small Cooler', icon: '❄️' } ],
+            bodega: [ { id: 'bodega_closet', label: 'Closet', icon: '🚪' }, { id: 'bodega_shelves', label: 'Shelves', icon: '🗄️' } ]
         };
 
-        // --- ERROR BOUNDARY ---
-        class ErrorBoundary extends Component {
-            constructor(props) { super(props); this.state = { hasError: false, error: null }; }
-            static getDerivedStateFromError(error) { return { hasError: true, error }; }
-            render() {
-                if (this.state.hasError) return <div className="p-10 text-center text-red-400 bg-gray-900 h-screen flex flex-col justify-center items-center"><div>Application Error. Reload Page.</div><div className="text-xs mt-2 opacity-50">{this.state.error?.toString()}</div></div>;
-                return this.props.children;
-            }
-        }
-
-        // --- ICONS ---
-        const IconWrapper = ({ children, className, size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>);
-        const Icons = {
-            Beer: (p) => <IconWrapper {...p}><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12h6"/><path d="M9 12v3a8 8 0 0 1-16 0v-3"/><path d="M22 6h-7a2 2 0 0 0-2 2v2"/><path d="M5 12V3a2 2 0 0 1 2-2h7"/></IconWrapper>,
-            Wine: (p) => <IconWrapper {...p}><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></IconWrapper>,
-            GlassWater: (p) => <IconWrapper {...p}><path d="M15.2 22H8.8a2 2 0 0 1-2-1.79L5 3h14l-1.81 17.21A2 2 0 0 1 15.2 22Z"/><path d="M6 12a5 5 0 0 1 6 0 5 5 0 0 0 6 0"/></IconWrapper>,
-            Package: (p) => <IconWrapper {...p}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
-            Search: (p) => <IconWrapper {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconWrapper>,
-            Download: (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></IconWrapper>,
-            ChevronDown: (p) => <IconWrapper {...p}><path d="m6 9 6 6 6-6"/></IconWrapper>,
-            ChevronUp: (p) => <IconWrapper {...p}><path d="m18 15-6-6-6 6"/></IconWrapper>,
-            AlertTriangle: (p) => <IconWrapper {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconWrapper>,
-            CheckCircle: (p) => <IconWrapper {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></IconWrapper>,
-            RotateCcw: (p) => <IconWrapper {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></IconWrapper>,
-            Calculator: (p) => <IconWrapper {...p}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></IconWrapper>,
-            MapPin: (p) => <IconWrapper {...p}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconWrapper>,
-            DollarSign: (p) => <IconWrapper {...p}><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></IconWrapper>,
-            ShoppingCart: (p) => <IconWrapper {...p}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></IconWrapper>,
-            RefreshCw: (p) => <IconWrapper {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></IconWrapper>,
-            Box: (p) => <IconWrapper {...p}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
-            ArrowRight: (p) => <IconWrapper {...p}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></IconWrapper>,
-            ArrowLeft: (p) => <IconWrapper {...p}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></IconWrapper>,
-            Trash: (p) => <IconWrapper {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></IconWrapper>,
-            BarChart: (p) => <IconWrapper {...p}><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></IconWrapper>,
-            Cloud: (p) => <IconWrapper {...p}><path d="M17.5 19c0-3.037-2.463-5.5-5.5-5.5S6.5 15.963 6.5 19"/><path d="M17.5 19c3.037 0 5.5-2.463 5.5-5.5S20.537 8 17.5 8"/><path d="M17.5 8c0-3.037-2.463-5.5-5.5-5.5S6.5 4.963 6.5 8"/><path d="M6.5 19C3.463 19 1 16.537 1 13.5S3.463 8 6.5 8"/></IconWrapper>,
-            HardDrive: (p) => <IconWrapper {...p}><line x1="22" x2="22" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/></IconWrapper>,
-            Save: (p) => <IconWrapper {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconWrapper>,
-            Upload: (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></IconWrapper>,
-            Scan: (p) => <IconWrapper {...p}><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="6" x="7" y="9" rx="1"/></IconWrapper>,
-            Barcode: (p) => <IconWrapper {...p}><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></IconWrapper>,
-            ErrorIcon: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></IconWrapper>,
-            Plus: (p) => <IconWrapper {...p}><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></IconWrapper>,
-            Leaf: (p) => <IconWrapper {...p}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.77 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></IconWrapper>,
-            List: (p) => <IconWrapper {...p}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></IconWrapper>,
-            FileText: (p) => <IconWrapper {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconWrapper>,
-            GitMerge: (p) => <IconWrapper {...p}><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></IconWrapper>,
-            Clock: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconWrapper>,
-            Settings: (p) => <IconWrapper {...p}><path d="M12.22 2h-.44a2 2 0 0 1-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconWrapper>,
-            Cocktail: (p) => <IconWrapper {...p}><path d="M8 21h8"/><path d="M12 21v-7"/><path d="M6 4h12a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></IconWrapper>,
-            Pitcher: (p) => <IconWrapper {...p}><path d="M16 2v2h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"/><path d="M10 2v2"/><path d="M7 2h10a2 2 0 0 1 2 2v14a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V4a2 2 0 0 1 2-2Z"/></IconWrapper>,
-            Star: (p) => <IconWrapper {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></IconWrapper>
-        };
-
-        // --- AUDIO HELPER ---
         const playSound = (type) => {
             try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const AudioContext = window.AudioContext || window.webkitAudioContext; if (!AudioContext) return;
+                const ctx = new AudioContext(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination); const now = ctx.currentTime;
-                switch (type) {
-                    case 'success': osc.type = "sine"; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); break;
-                    case 'error': osc.type = "square"; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); break;
-                    case 'add': osc.type = "sine"; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1000, now + 0.1); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); break;
-                    case 'sub': osc.type = "triangle"; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(300, now + 0.1); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); break;
-                }
-                osc.start(now); osc.stop(now + 0.2);
-            } catch (e) { console.error("Audio play failed", e); }
+                if (type === 'success') { osc.type = "sine"; osc.frequency.setValueAtTime(1000, now); osc.frequency.exponentialRampToValueAtTime(2000, now + 0.1); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5); osc.start(now); osc.stop(now + 0.5); }
+                if (type === 'error') { osc.type = "sawtooth"; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3); osc.start(now); osc.stop(now + 0.3); }
+                if (type === 'add') { osc.type = "sine"; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2); osc.start(now); osc.stop(now + 0.2); }
+                if (type === 'blip') { osc.type = "sine"; osc.frequency.setValueAtTime(2000, now); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1); osc.start(now); osc.stop(now + 0.1); }
+            } catch (e) {}
         };
 
-        // --- COMPONENTS ---
-        
-        const CategoryHeader = ({ title, icon: Icon, isOpen, toggle }) => (
-            <button onClick={toggle} className="w-full flex items-center justify-between p-4 bg-[#1D1F23] border border-[#3A4048] hover:bg-[#1D1F23]/80 rounded-xl shadow-lg mb-2 transition-all group"><div className="flex items-center gap-3"><div className="text-indigo-400 group-hover:text-indigo-300 transition-colors"><Icon size={20} /></div><h2 className="font-bold text-white text-lg group-hover:text-white transition-colors">{title}</h2></div>{isOpen ? <Icons.ChevronUp className="text-[#f0f6fc]/50" /> : <Icons.ChevronDown className="text-[#f0f6fc]/50" />}</button>
-        );
-
-        const InputField = ({ label, value, onChange, colorClass = "border-[#30363d]", icon: Icon }) => (
-            <div className="relative group"><label className="block text-[10px] text-[#f0f6fc]/60 font-bold uppercase mb-1 flex items-center gap-1 group-hover:text-indigo-400 transition-colors">{Icon && <Icon size={10} />} {label}</label><input type="number" step="0.1" placeholder="-" value={value} onChange={(e) => onChange(e.target.value)} className={`w-full bg-[#0A0A0A] border rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all ${colorClass} ${value !== "" && value !== 0 ? 'text-indigo-300 font-bold border-indigo-500/50 bg-indigo-900/20' : 'text-[#f0f6fc]/50'}`} /></div>
-        );
-
-        const InventoryRow = ({ item, onUpdate, onLinkBarcode, pendingBarcode, isWells, categoryName, onScanRequest, onDelete }) => {
-            const [isExpanded, setIsExpanded] = useState(false);
-            const isUnitBased = categoryName.includes("Beers") || categoryName.includes("Seltzer") || categoryName.includes("Non Alcoholic");
-            const totalPhys = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0);
-            const totalStart = (parseFloat(item.start_bar1)||0) + (parseFloat(item.start_bar2)||0) + (parseFloat(item.start_bodega)||0) + (parseFloat(item.start_barroluco)||0);
-            const purchases = parseFloat(item.purchases) || 0; const sales = parseFloat(item.sales) || 0;
-            const systemConsumption = totalStart + purchases - totalPhys; const diff = sales - systemConsumption;
-            const hasPhysical = item.bar1 || item.bar2 || item.bodega || item.barroluco; const hasStart = item.start_bar1 || item.start_bar2 || item.start_bodega || item.start_barroluco;
-            const bottleSizeOz = isWells ? 33.814 : 25.36; const shotsPerBottle = bottleSizeOz / 1.2; 
-            const handleSalesChange = (type, val) => {
-                let newBottles = type === 'bottles' ? val : (item.sold_bottles || ""); let newShots = type === 'shots' ? val : (item.sold_shots || ""); let newComps = type === 'comps' ? val : (item.sold_comps || "");
-                const b = parseFloat(newBottles) || 0; const s = parseFloat(newShots) || 0; const c = parseFloat(newComps) || 0;
-                let totalSales = 0; if (isUnitBased) totalSales = b + (s * 6) + c; else totalSales = b + ((s * 1.2) / bottleSizeOz) + c;
-                onUpdate(item.id, { sold_bottles: newBottles, sold_shots: newShots, sold_comps: newComps, sales: totalSales > 0 ? totalSales.toFixed(2) : "" });
-            };
-            let statusColor = "bg-[#1D1F23] border-[#3A4048]"; let badgeClass = "text-[#f0f6fc]/60 bg-[#0A0A0A] border border-[#3A4048]";
-            if (hasPhysical && hasStart) { if (diff < -0.1) { statusColor = "bg-[#1D1F23] border-red-500/50 shadow-[inset_4px_0_0_0_#ef4444]"; badgeClass = "text-red-400 bg-red-900/20 border border-red-500/30"; } else if (diff > 0.1) { statusColor = "bg-[#1D1F23] border-blue-500/50 shadow-[inset_4px_0_0_0_#3b82f6]"; badgeClass = "text-blue-400 bg-blue-900/20 border border-blue-500/30"; } else { statusColor = "bg-[#1D1F23] border-emerald-500/50 shadow-[inset_4px_0_0_0_#10b981]"; badgeClass = "text-emerald-400 bg-emerald-900/20 border border-emerald-500/30"; } }
-
-            return (
-                <div className={`rounded-xl border shadow-lg transition-all duration-300 overflow-hidden ${statusColor} mb-3 relative z-10`}>
-                    <div className="p-4 flex justify-between items-center cursor-pointer hover:bg-[#1D1F23]/80 transition-colors" onClick={() => setIsExpanded(!isExpanded)}>
-                        <div className="flex-1"><div className="flex items-center gap-2"><span className="font-bold text-white text-base">{item.name}</span>{(item.barcode || item.barcode_case) && <Icons.Barcode size={14} className="text-indigo-400" />}{(hasPhysical && hasStart) ? <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md ${badgeClass}`}>{diff > 0 ? "+" : ""}{diff.toFixed(1)}</span> : null}</div><div className="text-xs text-[#f0f6fc]/50 mt-1 flex gap-3 font-mono"><span>On Hand: <b className="text-white">{totalStart}</b></span><span className="text-[#f0f6fc]/40">|</span><span>Physical: <b className="text-white">{totalPhys}</b></span></div></div>
-                        <div>{isExpanded ? <Icons.ChevronUp className="text-[#f0f6fc]/50" /> : <Icons.ChevronDown className="text-[#f0f6fc]/50" />}</div>
-                    </div>
-                    {isExpanded && (
-                        <div className="p-4 border-t border-[#3A4048]/50 bg-[#0A0A0A]/50 space-y-4 animate-in">
-                            <div className="space-y-2 mb-3">
-                                <div className="flex items-center justify-between bg-[#0A0A0A] p-3 rounded-lg border border-[#3A4048]"><div className="flex items-center gap-2"><Icons.Barcode className="text-[#f0f6fc]/60" size={16} /><div className="flex flex-col"><span className="text-[10px] uppercase text-[#f0f6fc]/50 font-bold">Unit Barcode (CSV)</span><span className="text-xs font-mono text-white">{item.barcode ? item.barcode.split(',')[0].trim() : "Unlinked"}</span></div></div><button onClick={() => onScanRequest(item.id, 'unit')} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-lg shadow-indigo-900/20 active:scale-95 transition-all"><Icons.Scan size={14} /> {item.barcode ? "Change/Add" : "Link Unit"}</button></div>
-                            </div>
-                            <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#3A4048]"><div className="flex items-center gap-2 mb-3 text-indigo-400 font-bold text-[10px] uppercase tracking-wider"><Icons.Box size={12} /> 1. On Hand (Start)</div><div className="grid grid-cols-4 gap-2"><InputField label="Bar 1" value={item.start_bar1} onChange={(v) => onUpdate(item.id, 'start_bar1', v)} colorClass="border-[#3A4048] focus:border-amber-500" /><InputField label="Bar 2" value={item.start_bar2} onChange={(v) => onUpdate(item.id, 'start_bar2', v)} colorClass="border-[#3A4048] focus:border-amber-500" /><InputField label="Storage" value={item.start_bodega} onChange={(v) => onUpdate(item.id, 'start_bodega', v)} colorClass="border-[#3A4048] focus:border-amber-500" /><InputField label="Barroluco" value={item.start_barroluco} onChange={(v) => onUpdate(item.id, 'start_barroluco', v)} colorClass="border-[#3A4048] focus:border-amber-500" /></div></div>
-                            <div className="bg-[#1D1F23] p-3 rounded-lg border border-[#3A4048]"><div className="grid grid-cols-1 gap-3"><InputField label="2. Purchases (+)" value={item.purchases} onChange={(v) => onUpdate(item.id, 'purchases', v)} icon={Icons.ShoppingCart} colorClass="border-emerald-900/50 focus:border-emerald-500 text-emerald-300" /></div></div>
-                            <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#3A4048]"><div className="flex items-center gap-2 mb-3 text-indigo-400 font-bold text-[10px] uppercase tracking-wider"><Icons.MapPin size={12} /> 3. Physical Count (End)</div><div className="grid grid-cols-4 gap-2"><InputField label="Bar 1" value={item.bar1} onChange={(v) => onUpdate(item.id, 'bar1', v)} colorClass="border-[#3A4048] focus:border-indigo-500" /><InputField label="Bar 2" value={item.bar2} onChange={(v) => onUpdate(item.id, 'bar2', v)} colorClass="border-[#3A4048] focus:border-indigo-500" /><InputField label="Storage" value={item.bodega} onChange={(v) => onUpdate(item.id, 'bodega', v)} colorClass="border-[#3A4048] focus:border-indigo-500" /><InputField label="Barroluco" value={item.barroluco} onChange={(v) => onUpdate(item.id, 'barroluco', v)} colorClass="border-[#3A4048] focus:border-indigo-500" /></div></div>
-                            <div className="bg-amber-900/10 p-3 rounded-lg border border-amber-900/20"><div className="flex items-center gap-2 mb-3 text-amber-500 font-bold text-[10px] uppercase tracking-wider"><Icons.Calculator size={12} /> 4. Sales Calculator (POS)</div><div className="mb-4 bg-amber-500/5 p-3 rounded border border-amber-500/10"><div className="text-[10px] text-amber-300 mb-1 uppercase font-bold">{isUnitBased ? "Unit Calculator" : `Shot Calculator (1.2oz @ ${isWells ? '1L' : '750ml'})`}</div><div className="grid grid-cols-3 gap-3 mb-2"><div className="relative group"><label className="block text-[10px] text-amber-300/70 font-bold uppercase mb-1">{isUnitBased ? "Cans / Units" : "Bottles"}</label><input type="number" step="1" placeholder="0" value={item.sold_bottles || ""} onChange={(e) => handleSalesChange('bottles', e.target.value)} className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-2 font-mono text-sm focus:outline-none focus:border-amber-500 text-amber-100" /></div><div className="relative group"><label className="block text-[10px] text-amber-300/70 font-bold uppercase mb-1">{isUnitBased ? "Buckets (x6)" : "Shots"}</label><input type="number" step="1" placeholder="0" value={item.sold_shots || ""} onChange={(e) => handleSalesChange('shots', e.target.value)} className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-2 font-mono text-sm focus:outline-none focus:border-amber-500 text-amber-100" /></div><div className="relative group"><label className="block text-[10px] text-amber-300/70 font-bold uppercase mb-1">{isUnitBased ? "Comps (Units)" : "Comps (Bottles)"}</label><input type="number" step="1" placeholder="0" value={item.sold_comps || ""} onChange={(e) => handleSalesChange('comps', e.target.value)} className="w-full bg-[#0A0A0A] border border-emerald-700/50 rounded-lg px-2 py-2 font-mono text-sm focus:outline-none focus:border-emerald-500 text-emerald-100" /></div></div></div><div className="grid grid-cols-1 gap-3"><InputField label="Total Sales POS (Calculated)" value={item.sales} onChange={(v) => onUpdate(item.id, 'sales', v)} icon={Icons.DollarSign} colorClass="border-blue-900/50 focus:border-blue-500 text-blue-300" /></div><div className="text-right mt-4 text-xs text-[#f0f6fc]/50 font-mono space-y-2"><div className="text-amber-500/80">Sys Sales = {totalStart} + {purchases || 0} - {totalPhys} = <b>{systemConsumption}</b></div><div className={`text-xl font-black ${diff < 0 ? 'text-red-600' : 'text-emerald-600'}`}>Diff = {diff.toFixed(2)}</div></div></div>
-                            <div className="flex justify-between items-center pt-4 border-t border-[#3A4048]/50 mt-2"><div className="text-[9px] text-[#f0f6fc]/30 font-mono">ID: {item.id}</div><button onClick={(e) => { e.stopPropagation(); onDelete(item); }} className="flex items-center gap-2 bg-red-900/10 hover:bg-red-900/30 text-red-500 hover:text-red-400 border border-red-900/30 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"><Icons.Trash size={14} /> Delete</button></div>
-                        </div>
-                    )}
-                </div>
-            );
+        const IconWrapper = ({ children, className }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>);
+        const Icons = {
+            Scan: (p) => <IconWrapper {...p}><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="6" x="7" y="9" rx="1"/></IconWrapper>,
+            Search: (p) => <IconWrapper {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconWrapper>,
+            MapPin: (p) => <IconWrapper {...p}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconWrapper>,
+            Beer: (p) => <IconWrapper {...p}><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12h6"/><path d="M9 12v3a8 8 0 0 1-16 0v-3"/><path d="M22 6h-7a2 2 0 0 0-2 2v2"/><path d="M5 12V3a2 2 0 0 1 2-2h7"/></IconWrapper>,
+            Box: (p) => <IconWrapper {...p}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
+            Wine: (p) => <IconWrapper {...p}><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></IconWrapper>,
+            ChevronDown: (p) => <IconWrapper {...p}><path d="m6 9 6 6 6-6"/></IconWrapper>,
+            List: (p) => <IconWrapper {...p}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></IconWrapper>,
+            Link: (p) => <IconWrapper {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></IconWrapper>,
+            Save: (p) => <IconWrapper {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconWrapper>,
+            Scale: (p) => <IconWrapper {...p}><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></IconWrapper>,
+            Bluetooth: (p) => <IconWrapper {...p}><path d="m7 7 10 10-5 5V2l5 5L7 17"/></IconWrapper>
         };
-        
-        const LoginScreen = ({ onLogin, logoSrc, onLogoUpload }) => {
+
+        const LoginScreen = ({ onLogin }) => {
             const [pin, setPin] = useState("");
-            const [error, setError] = useState(false);
-            const [imgError, setImgError] = useState(false);
-
-            const handleNum = (num) => {
-                if (pin.length < 4) {
-                    const newPin = pin + num;
-                    setPin(newPin);
-                    if (newPin.length === 4) {
-                        setTimeout(() => {
-                            if (newPin === "1130") {
-                                onLogin();
-                            } else {
-                                setError(true);
-                                playSound('error');
-                                setTimeout(() => {
-                                    setPin("");
-                                    setError(false);
-                                }, 400);
-                            }
-                        }, 200);
-                    } else {
-                        playSound('add');
-                    }
-                }
-            };
-
-            const handleDelete = () => {
-                if (pin.length > 0) {
-                    setPin(prev => prev.slice(0, -1));
-                    playSound('sub');
-                }
-            };
-
             return (
-                <div className="fixed inset-0 bg-[#0A0A0A] flex flex-col items-center justify-center p-4 z-[9999]">
-                    <div className="mb-10 text-center animate-in flex flex-col items-center">
-                        <div 
-                            className="w-32 h-32 bg-[#1D1F23] rounded-full mb-6 flex items-center justify-center border border-[#3A4048] shadow-2xl relative overflow-hidden group cursor-pointer hover:border-indigo-500 transition-all"
-                            onClick={() => document.getElementById('login-logo-upload').click()}
-                            title="Click to change logo"
-                        >
-                            {!imgError && logoSrc ? (
-                                <img src={logoSrc} alt="Logo" className="w-full h-full object-cover" onError={() => setImgError(true)} />
-                            ) : (
-                                <>
-                                    <div className="absolute inset-0 bg-indigo-500/10 blur-xl"></div>
-                                    <Icons.GlassWater size={48} className="text-indigo-500 relative z-10" />
-                                </>
-                            )}
-                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Icons.Upload size={24} className="text-white mb-1" />
-                                <span className="text-[10px] text-white uppercase font-bold">Change</span>
-                            </div>
-                        </div>
-                        <input type="file" id="login-logo-upload" accept="image/*" className="hidden" onChange={onLogoUpload} />
-
-                        <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Master Bar Control</h1>
-                        <p className="text-[#f0f6fc]/40 text-[10px] font-medium uppercase tracking-widest">Access Control</p>
-                    </div>
-
-                    <div className={`flex gap-6 mb-12 ${error ? 'shake' : ''}`}>
-                        {[0, 1, 2, 3].map(i => (
-                            <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 border ${
-                                pin.length > i 
-                                    ? (error ? 'bg-red-500 border-red-500 scale-110 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-indigo-500 border-indigo-500 scale-110 shadow-[0_0_15px_rgba(99,102,241,0.5)]') 
-                                    : 'bg-transparent border-[#3A4048]'
-                            }`}></div>
-                        ))}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-6 max-w-xs w-full">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                            <button key={num} onClick={() => handleNum(num.toString())} className="h-16 w-16 rounded-full text-2xl font-bold text-white bg-[#1D1F23] hover:bg-[#2A2D33] active:scale-90 transition-all border border-[#3A4048] shadow-lg flex items-center justify-center mx-auto">{num}</button>
-                        ))}
-                        <div className="h-16 w-16"></div>
-                        <button onClick={() => handleNum("0")} className="h-16 w-16 rounded-full text-2xl font-bold text-white bg-[#1D1F23] hover:bg-[#2A2D33] active:scale-90 transition-all border border-[#3A4048] shadow-lg flex items-center justify-center mx-auto">0</button>
-                        <button onClick={handleDelete} className="h-16 w-16 flex items-center justify-center text-[#f0f6fc]/40 hover:text-white active:scale-90 transition-all mx-auto"><span className="text-xl font-bold">✕</span></button>
-                    </div>
-                    
-                    <div className="mt-10 text-[#f0f6fc]/20 text-xs font-mono">v{APP_VERSION} ({BUILD_ID}) Secure Access</div>
+                <div className="fixed inset-0 bg-black flex flex-col items-center justify-center p-4 z-50">
+                    <div className="mb-8 text-center"><h1 className="text-3xl font-black text-white tracking-tight">SCANNER</h1><p className="text-gray-500 text-sm">Authorized Personnel Only</p></div>
+                    <div className="flex gap-4 mb-8">{[0,1,2,3].map(i=><div key={i} className={`w-4 h-4 rounded-full border ${pin.length>i?'bg-indigo-500 border-indigo-500':'border-gray-600'}`}></div>)}</div>
+                    <div className="grid grid-cols-3 gap-6">{[1,2,3,4,5,6,7,8,9,0].map(n=><button key={n} onClick={()=>{const newP=pin+n;setPin(newP);if(newP==="1130") onLogin(); if(newP.length>=4 && newP!=="1130") setPin("");}} className={`h-20 w-20 rounded-full text-2xl font-bold text-white bg-gray-900 border border-gray-700 active:bg-indigo-600 ${n===0?'col-start-2':''}`}>{n}</button>)}</div>
                 </div>
             );
         };
 
-        const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, isDestructive, customActions }) => {
-            if (!isOpen) return null;
+        const LinkModal = ({ barcode, data, onLink, onClose }) => {
+            const [search, setSearch] = useState("");
+            const filtered = data.map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(search.toLowerCase())) })).filter(c => c.items.length > 0);
             return (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-in">
-                    <div className="bg-[#1D1F23] border border-[#3A4048] rounded-xl max-w-md w-full p-6 shadow-2xl">
-                        <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                            {isDestructive ? <Icons.AlertTriangle className="text-red-500" /> : <Icons.CheckCircle className="text-indigo-500" />}
-                            {title}
-                        </h3>
-                        <p className="text-[#f0f6fc]/80 mb-6 whitespace-pre-line leading-relaxed">{message}</p>
-                        
-                        {customActions ? (
-                            <div className="flex flex-col gap-3">
-                                {customActions.map((action, idx) => (
-                                    <button 
-                                        key={idx} 
-                                        onClick={action.onClick} 
-                                        className={`w-full py-3 rounded-lg font-bold transition-all shadow-lg active:scale-95 ${action.class || 'bg-[#3A4048] text-white hover:bg-[#4A5462]'}`}
-                                    >
-                                        {action.label}
-                                    </button>
-                                ))}
-                                <button onClick={onClose} className="w-full py-2 mt-2 text-[#f0f6fc]/50 hover:text-white text-xs font-medium">Cancel</button>
-                            </div>
-                        ) : (
-                            <div className="flex justify-end gap-3">
-                                <button onClick={onClose} className="px-4 py-2 rounded-lg bg-[#3A4048] text-[#f0f6fc]/80 hover:bg-[#4A5462] transition-colors border border-[#4A5462] font-medium">Cancel</button>
-                                <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white font-bold transition-colors shadow-lg ${isDestructive ? 'bg-red-600 hover:bg-red-500 shadow-red-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'}`}>Confirm</button>
-                            </div>
-                        )}
+                <div className="fixed inset-0 bg-black/95 z-50 flex flex-col animate-in">
+                    <div className="p-4 bg-gray-900 border-b border-gray-800 flex flex-col gap-2">
+                        <div className="flex justify-between items-center"><h2 className="text-xl font-bold text-red-400 flex items-center gap-2"><Icons.Link /> Unknown Code</h2><button onClick={onClose} className="text-gray-400 font-bold px-3 py-1 bg-gray-800 rounded-lg">Cancel</button></div>
+                        <div className="bg-red-900/20 border border-red-500/50 p-2 rounded-lg text-center font-mono text-red-200 font-bold">{barcode}</div>
+                        <p className="text-gray-400 text-sm text-center">Select product to link this code:</p>
+                    </div>
+                    <div className="p-4 bg-black border-b border-gray-800"><input type="text" placeholder="Search product name..." className="w-full bg-gray-900 border border-gray-700 rounded-xl py-3 px-4 text-white focus:border-indigo-500 outline-none" value={search} onChange={e=>setSearch(e.target.value)} autoFocus /></div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">{filtered.map(cat => (<div key={cat.category}><h3 className="text-indigo-400 font-bold text-xs uppercase mb-2">{cat.category}</h3>{cat.items.map(item => (<button key={item.id} onClick={() => onLink(item)} className="w-full text-left bg-gray-900 border border-gray-800 p-4 rounded-xl mb-2 flex justify-between items-center active:bg-indigo-900 transition-colors"><span className="font-bold text-white">{item.name}</span><span className="text-xs text-gray-500">Link →</span></button>))}</div>))}</div>
+                </div>
+            );
+        };
+
+        const ReviewModal = ({ onClose, data, onUpdate }) => {
+            const mainLocs = [ { id: 'bar1', label: 'Bar 1', color: 'text-blue-400' }, { id: 'bar2', label: 'Bar 2', color: 'text-purple-400' }, { id: 'bodega', label: 'Storage', color: 'text-amber-400' }, { id: 'barroluco', label: 'Barroluco', color: 'text-rose-400' } ];
+            return (
+                <div className="fixed inset-0 bg-black/95 z-50 flex flex-col animate-in">
+                    <div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center shrink-0"><h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.List className="text-emerald-400" /> Count Check</h2><button onClick={onClose} className="bg-gray-800 text-white px-4 py-2 rounded-xl font-bold border border-gray-700">Close</button></div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                        {mainLocs.map(main => {
+                            const subZones = ZONES_CONFIG[main.id] || [];
+                            const mainTotal = data.reduce((acc, cat) => acc + cat.items.reduce((iAcc, item) => iAcc + (parseFloat(item[main.id])||0), 0), 0);
+                            const directItems = data.flatMap(cat => cat.items.filter(i => (parseFloat(i[main.id])||0) > 0)).map(i => ({...i, val: parseFloat(i[main.id])}));
+                            if (mainTotal === 0) return null;
+                            return (
+                                <div key={main.id} className="space-y-3">
+                                    <div className="sticky top-0 z-10 bg-gray-900/90 backdrop-blur border-b border-gray-800 py-2"><h3 className={`font-black text-lg uppercase ${main.color}`}>{main.label} <span className="text-white text-sm opacity-50 ml-2">({mainTotal.toFixed(2)})</span></h3></div>
+                                    {subZones.map(zone => {
+                                        const zoneItems = data.flatMap(cat => cat.items.filter(i => (parseFloat(i[zone.id])||0) > 0)).map(i => ({...i, val: parseFloat(i[zone.id])}));
+                                        if (zoneItems.length === 0) return null;
+                                        return (
+                                            <div key={zone.id} className="pl-2 border-l-2 border-gray-800 ml-1"><div className="text-sm font-bold text-gray-400 mb-2 flex items-center gap-2">{zone.icon} {zone.label}</div><div className="grid gap-2">{zoneItems.map(item => (<div key={item.id} className="bg-gray-900 p-3 rounded-xl border border-gray-800 flex justify-between items-center"><span className="font-medium text-white text-sm truncate pr-2">{item.name}</span><input type="number" value={item.val} onChange={(e) => { const val = parseFloat(e.target.value) || 0; let newTotal = val; subZones.forEach(z => { if(z.id !== zone.id) newTotal += (parseFloat(item[z.id])||0); }); onUpdate(item.id, { [zone.id]: val, [main.id]: newTotal }); }} className="w-20 bg-black border border-gray-700 rounded px-2 py-1 text-right text-white font-mono font-bold focus:border-emerald-500 outline-none"/></div>))}</div></div>
+                                        );
+                                    })}
+                                    {!subZones.length && directItems.map(item => (<div key={item.id} className="bg-gray-900 p-3 rounded-xl border border-gray-800 flex justify-between items-center"><span className="font-medium text-white text-sm truncate pr-2">{item.name}</span><input type="number" value={item.val} onChange={(e) => onUpdate(item.id, main.id, parseFloat(e.target.value)||0)} className="w-20 bg-black border border-gray-700 rounded px-2 py-1 text-right text-white font-mono font-bold focus:border-emerald-500 outline-none"/></div>))}
+                                </div>
+                            );
+                        })}
+                        {!data.some(c=>c.items.some(i=>parseFloat(i.bar1)||parseFloat(i.bar2)||parseFloat(i.bodega)||parseFloat(i.barroluco))) && <div className="text-center text-gray-600 mt-20">Nothing counted yet.</div>}
                     </div>
                 </div>
             );
         };
 
-        const ImportModal = ({ isOpen, onClose, onReplace, onMerge }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[70] backdrop-blur-md animate-in p-4">
-                    <div className="bg-[#1D1F23] border border-[#3A4048] w-full max-w-md rounded-2xl shadow-2xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Icons.Upload className="text-indigo-400" /> Import File</h2>
-                        <p className="text-[#f0f6fc]/70 mb-6">Data found in file. How would you like to process it?</p>
-                        <div className="flex flex-col gap-3">
-                            <button onClick={onMerge} className="flex items-center justify-between p-4 bg-indigo-900/20 border border-indigo-500/50 rounded-xl hover:bg-indigo-900/40 transition-all group text-left">
-                                <div><div className="font-bold text-indigo-300 group-hover:text-indigo-200">Merge and Sum (Merge)</div><div className="text-xs text-indigo-400/60 mt-1">Sums quantities. Ideal for multi-device counts.</div></div>
-                                <Icons.GitMerge className="text-indigo-400" />
-                            </button>
-                            <button onClick={onReplace} className="flex items-center justify-between p-4 bg-red-900/10 border border-red-500/30 rounded-xl hover:bg-red-900/20 transition-all group text-left">
-                                <div><div className="font-bold text-red-400 group-hover:text-red-300">Replace All</div><div className="text-xs text-red-500/60 mt-1">Deletes current inventory and uses only file data.</div></div>
-                                <Icons.Trash className="text-red-500" />
-                            </button>
-                        </div>
-                        <button onClick={onClose} className="w-full mt-6 py-2 rounded-lg bg-[#3A4048] text-[#f0f6fc]/60 font-medium hover:text-white hover:bg-[#4A5462]">Cancel</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const AddProductModal = ({ isOpen, onClose, onAdd, categories }) => {
-            if (!isOpen) return null;
-            const [name, setName] = useState("");
-            const [category, setCategory] = useState(categories[0] || "");
-            const handleSubmit = () => { if (!name.trim()) return; onAdd(name, category); setName(""); onClose(); };
-            return (
-                <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-[60] backdrop-blur-md animate-in p-4">
-                    <div className="bg-[#1D1F23] border border-[#3A4048] w-full max-w-md rounded-2xl shadow-2xl p-6">
-                        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><Icons.Plus className="text-indigo-400" /> Add New Product</h2>
-                        <div className="space-y-4">
-                            <div><label className="block text-xs text-[#f0f6fc]/60 font-bold uppercase mb-1">Product Name</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-3 py-3 text-white focus:outline-none focus:border-indigo-500 font-medium" placeholder="e.g., Havana Club" autoFocus/></div>
-                            <div><label className="block text-xs text-[#f0f6fc]/60 font-bold uppercase mb-1">Category</label><select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-3 py-3 text-white focus:outline-none focus:border-indigo-500 appearance-none font-medium">{categories.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                        </div>
-                        <div className="flex gap-3 mt-6"><button onClick={onClose} className="flex-1 py-3 rounded-xl bg-[#3A4048] text-[#f0f6fc]/80 font-bold hover:bg-[#4A5462]">Cancel</button><button onClick={handleSubmit} className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 shadow-lg shadow-indigo-900/30">Add Product</button></div>
-                    </div>
-                </div>
-            );
-        };
-
-        const QuickEditModal = ({ item, onClose, onUpdate, initialLocation = 'bodega', initialSubZone, onLocationChange, onSubZoneChange }) => {
-            if (!item) return null;
-            // Store location state locally to persist scanning context
-            const [activeField, setActiveField] = useState(initialLocation);
+        // --- BLUETOOTH SCALE COMPONENT (ETEKCITY/GENERIC SUPPORT) ---
+        const QuickEditModal = ({ item, onClose, onContinue, onUpdate, initialLocation, initialSubZone }) => {
+            const [value, setValue] = useState(0);
+            const [scaleConnected, setScaleConnected] = useState(false);
+            const [scaleWeight, setScaleWeight] = useState(null);
+            const [scaleError, setScaleError] = useState(null);
+            const [rawHex, setRawHex] = useState(""); // DEBUG VISUAL
             
-            const zonesConfig = {
-                bar1: [{ id: 'bar1_cooler', label: 'Cooler', icon: '🧊' }, { id: 'bar1_small_cooler_1', label: 'Small 1', icon: '❄️' }, { id: 'bar1_small_cooler_2', label: 'Small 2', icon: '❄️' }, { id: 'bar1_reaching', label: 'Reaching', icon: '✋' }, { id: 'bar1_shelf_full', label: 'Shelf Full', icon: '🍾' }, { id: 'bar1_shelf_open', label: 'Shelf Open', icon: '🥃' }, { id: 'bar1_well_1', label: 'Well 1', icon: '🥃' }, { id: 'bar1_well_2', label: 'Well 2', icon: '🥃' }],
-                bar2: [{ id: 'bar2_cooler', label: 'Cooler', icon: '🧊' }, { id: 'bar2_small_cooler', label: 'Small Cooler', icon: '❄️' }],
-                bodega: [{ id: 'bodega_closet', label: 'Closet', icon: '🚪' }, { id: 'bodega_shelves', label: 'Shelves', icon: '🗄️' }]
-            };
+            const zones = ZONES_CONFIG[initialLocation] || [];
+            const subZoneId = initialSubZone || (zones[0]?.id);
+            const subZoneLabel = zones.find(z=>z.id===subZoneId)?.label;
+            const targetField = zones.length > 0 ? subZoneId : initialLocation;
             
-            const hasSubZones = zonesConfig[activeField] !== undefined;
-            const currentZones = zonesConfig[activeField] || [];
-            
-            // If scanning context exists (initialSubZone provided), use it directly without defaults unless invalid
-            const isValidSubZone = currentZones.some(z => z.id === initialSubZone);
-            const defaultSubZone = hasSubZones ? (isValidSubZone ? initialSubZone : currentZones[0]?.id) : null;
-            
-            const [subZone, setSubZone] = useState(defaultSubZone);
-
-            // If we are in "Tunnel Mode" (scanning active), we hide MAIN navigation, but KEEP SUB navigation
-            const isTunnelMode = !!initialSubZone; 
-            
-            const [sessionStartValue, setSessionStartValue] = useState(() => parseFloat(item[initialLocation]) || 0);
-
-            // Handlers for manual location change (if not in tunnel mode)
-            const handleLocationChange = (locId) => {
-                setActiveField(locId);
-                if (onLocationChange) onLocationChange(locId); // Notify parent
-
-                const newZones = zonesConfig[locId];
-                if (newZones) {
-                     const newSub = newZones[0].id;
-                     setSubZone(newSub);
-                     if (onSubZoneChange) onSubZoneChange(newSub); 
-                     setSessionStartValue(parseFloat(item[locId]) || 0); 
-                } else {
-                     setSubZone(null);
-                     if (onSubZoneChange) onSubZoneChange(null);
-                     setSessionStartValue(parseFloat(item[locId]) || 0);
-                }
-            };
-            
-            const handleSubZoneClick = (zId) => {
-                setSubZone(zId);
-                if (onSubZoneChange) onSubZoneChange(zId);
-            };
-            
-            const targetField = hasSubZones ? subZone : activeField;
-            const currentValue = parseFloat(item[targetField]) || 0;
-            const [lastDelta, setLastDelta] = useState(null);
-            const currentTotalValue = parseFloat(item[activeField]) || 0;
-            const addedThisSession = currentTotalValue - sessionStartValue;
-            const addedSign = addedThisSession > 0 ? "+" : "";
-            const addedColor = addedThisSession > 0 ? "text-emerald-400" : (addedThisSession < 0 ? "text-red-400" : "text-[#f0f6fc]/30");
+            useEffect(() => { setValue(parseFloat(item[targetField]) || 0); }, [item, targetField]);
 
             const handleDelta = (delta) => {
-                if (delta > 0) playSound('add'); else playSound('sub');
-                const next = Math.round((currentValue + delta) * 10) / 10;
-                const newValue = Math.max(0, next);
-                setLastDelta(delta); setTimeout(() => setLastDelta(null), 800);
-                if (hasSubZones) {
-                    const updates = { [subZone]: newValue };
-                    let newTotal = 0;
-                    currentZones.forEach(z => { if (z.id === subZone) newTotal += newValue; else newTotal += (parseFloat(item[z.id]) || 0); });
-                    newTotal = Math.round(newTotal * 10) / 10; updates[activeField] = newTotal;
-                    onUpdate(item.id, updates);
-                } else { onUpdate(item.id, activeField, newValue); }
+                const next = Math.max(0, Math.round((value + delta) * 100) / 100);
+                updateValue(next);
+                playSound('add');
             };
 
-            const locations = [ { id: 'bodega', label: 'Storage' }, { id: 'bar1', label: 'Bar 1' }, { id: 'bar2', label: 'Bar 2' }, { id: 'barroluco', label: 'Barroluco' }, { id: 'purchases', label: 'Purchases' } ];
-            
-            // Get Labels for Display
-            const locationLabel = locations.find(l => l.id === activeField)?.label;
-            const subZoneLabel = currentZones.find(z => z.id === subZone)?.label;
-
-            return (
-                <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-[60] backdrop-blur-md animate-in p-2">
-                    {/* MODAL CONTAINER - MAXIMIZED SIZE (max-w-5xl, h-[85vh]) BUT KEEPING CONTENT SMALL */}
-                    <div className="bg-[#1D1F23] border border-[#3A4048] w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-                        
-                        {/* HEADER */}
-                        <div className="p-4 bg-[#121212] border-b border-[#3A4048] flex justify-between items-center">
-                            <div>
-                                <h2 className="text-2xl font-black text-white leading-tight tracking-tight">{item.name}</h2>
-                                {/* Show Context info clearly */}
-                                <div className="text-xs text-indigo-400 font-mono mt-1 flex items-center gap-2 font-bold uppercase tracking-wider">
-                                    <Icons.MapPin size={12}/> {locationLabel} {subZoneLabel ? ` > ${subZoneLabel}` : ''}
-                                </div>
-                            </div>
-                            <button onClick={onClose} className="bg-[#3A4048] hover:bg-[#4A5462] text-white p-3 rounded-xl transition-colors shadow-lg active:scale-95">
-                                <span className="text-xl font-bold px-2">✕</span>
-                            </button>
-                        </div>
-                        
-                        {/* MAIN LOCATION TABS (Hidden in Tunnel Mode - BUT subzones are below) */}
-                        {!isTunnelMode && (
-                            <div className="p-2 bg-[#1D1F23] border-b border-[#3A4048] overflow-x-auto">
-                                <div className="flex gap-2">
-                                    {locations.map(loc => (
-                                        <button key={loc.id} onClick={() => handleLocationChange(loc.id)} className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-md ${activeField === loc.id ? 'bg-indigo-600 text-white shadow-indigo-900/50 scale-105' : 'bg-[#3A4048] text-[#f0f6fc]/60 hover:bg-[#4A5462]'}`}>{loc.label}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* SUB-ZONES (ALWAYS VISIBLE if they exist) */}
-                        {hasSubZones && (
-                            <div className="p-2 bg-[#16181c] border-b border-[#3A4048] overflow-x-auto animate-in">
-                                <div className="flex gap-2">
-                                    {currentZones.map(zone => (
-                                        <button key={zone.id} onClick={() => handleSubZoneClick(zone.id)} className={`px-3 py-1.5 rounded-md text-[10px] uppercase font-bold whitespace-nowrap transition-all flex items-center gap-2 shadow-sm ${subZone === zone.id ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/50 ring-1 ring-indigo-500/50' : 'bg-[#25282e] text-[#f0f6fc]/40 border border-transparent hover:bg-[#3A4048]'}`}>
-                                            <span className="text-base">{zone.icon}</span> {zone.label}
-                                            <span className="bg-black/30 px-2 py-0.5 rounded text-white font-mono">{parseFloat(item[zone.id]) || 0}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex-1 p-4 md:p-6 flex flex-col items-center justify-center bg-gradient-to-b from-[#1D1F23] to-[#0A0A0A] overflow-y-auto">
-                            <div className="text-center mb-6 relative w-full">
-                                <div className="text-[#f0f6fc]/40 text-sm uppercase font-bold tracking-widest mb-2">
-                                    Current Count: <span className="text-white">{hasSubZones ? subZoneLabel : locationLabel}</span>
-                                </div>
-                                <div className="flex flex-col items-center justify-center">
-                                    {/* NUMBER DISPLAY (Reduced size by approx 30-40%) */}
-                                    <div className="text-6xl font-black text-white font-mono tracking-tighter tabular-nums relative inline-block drop-shadow-2xl">
-                                        {currentValue}
-                                        {lastDelta !== null && (
-                                            /* Delta Indicators (Reduced size) */
-                                            <span className={`absolute -right-12 top-0 text-3xl font-bold ${lastDelta > 0 ? 'text-emerald-400' : 'text-red-400'} animate-float`}>
-                                                {lastDelta > 0 ? '+' : ''}{lastDelta}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className={`mt-3 px-4 py-1.5 rounded-full bg-[#1A1A1A] border border-[#3A4048] flex items-center gap-3 ${addedThisSession !== 0 ? 'opacity-100' : 'opacity-50'}`}>
-                                        <span className="text-[10px] text-[#f0f6fc]/40 uppercase font-bold">Session:</span>
-                                        <span className={`text-xl font-bold font-mono ${addedColor}`}>
-                                            {addedSign}{Math.round(addedThisSession * 10) / 10}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* BUTTON GRID - KEPT SMALL SIZES */}
-                            <div className="w-full grid grid-cols-2 gap-4 max-w-3xl mx-auto">
-                                <div className="flex flex-col gap-2 items-end">
-                                    <button onClick={() => handleDelta(-24)} className="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">- 24</button>
-                                    <button onClick={() => handleDelta(-12)} className="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">- 12</button>
-                                    <button onClick={() => handleDelta(-6)} className="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">- 6</button>
-                                    <button onClick={() => handleDelta(-5)} className="w-full bg-red-900/20 hover:bg-red-900/40 text-red-500 border border-red-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">- 5</button>
-                                    <button onClick={() => handleDelta(-1)} className="w-full bg-red-600 hover:bg-red-500 text-white border border-red-500 h-14 rounded-xl font-black text-2xl active:scale-95 transition-all shadow-red-900/50 shadow-xl">- 1</button>
-                                </div>
-                                <div className="flex flex-col gap-2 items-start">
-                                    <button onClick={() => handleDelta(24)} className="w-full bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-500 border border-emerald-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">+ 24</button>
-                                    <button onClick={() => handleDelta(12)} className="w-full bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-500 border border-emerald-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">+ 12</button>
-                                    <button onClick={() => handleDelta(6)} className="w-full bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-500 border border-emerald-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">+ 6</button>
-                                    <button onClick={() => handleDelta(5)} className="w-full bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-500 border border-emerald-900/50 h-11 rounded-lg font-bold text-sm active:scale-95 transition-all shadow-lg">+ 5</button>
-                                    <button onClick={() => handleDelta(1)} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 h-14 rounded-xl font-black text-2xl active:scale-95 transition-all shadow-emerald-900/50 shadow-xl">+ 1</button>
-                                </div>
-                            </div>
-                            
-                            <div className="w-full grid grid-cols-2 gap-4 max-w-3xl mx-auto mt-2">
-                                 <button onClick={() => handleDelta(-0.1)} className="w-full bg-[#2A2D33] hover:bg-[#3A4048] text-red-400 border border-[#3A4048] h-10 rounded-lg font-bold text-base active:scale-95 transition-all">- 0.1</button>
-                                 <button onClick={() => handleDelta(0.1)} className="w-full bg-[#2A2D33] hover:bg-[#3A4048] text-emerald-400 border border-[#3A4048] h-10 rounded-lg font-bold text-base active:scale-95 transition-all">+ 0.1</button>
-                            </div>
-                        </div>
-
-                        <div className="p-4 bg-[#1D1F23] border-t border-[#3A4048] z-20">
-                            {/* DONE BUTTON (Reduced size) */}
-                            <button onClick={onClose} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg h-10 rounded-lg shadow-xl shadow-indigo-900/40 active:scale-95 transition-all tracking-wide flex items-center justify-center">
-                                DONE
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const ShoppingListModal = ({ isOpen, onClose, items }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 bg-black/90 flex flex-col z-50 backdrop-blur-sm animate-in overflow-hidden">
-                    <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#1D1F23]">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.ShoppingCart className="text-amber-500" /> Shopping List</h2>
-                        <button onClick={onClose} className="p-2 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462]">Close</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4">
-                        {items.length === 0 ? <div className="text-center text-[#f0f6fc]/50 mt-20"><p className="text-lg">All items are fully stocked!</p></div> : <div className="grid gap-3">{items.map((item, idx) => (<div key={idx} className="bg-[#1D1F23] p-4 rounded-xl border border-[#3A4048] flex justify-between items-center shadow-lg"><div><h3 className="font-bold text-white text-lg">{item.name}</h3><div className="text-xs text-[#f0f6fc]/50 font-mono mt-1">On Hand: <span className="text-emerald-400">{item.current}</span> / Target: <span className="text-blue-400">{item.target}</span></div></div><div className="text-right"><div className="text-[10px] text-amber-500 uppercase font-bold">To Buy</div><div className="text-2xl font-black text-amber-400">{item.needed}</div>{item.details && <div className="text-[10px] text-[#f0f6fc]/60 font-mono mt-1">{item.details}</div>}</div></div>))}</div>}
-                    </div>
-                </div>
-            );
-        };
-        
-        // NEW: COUNT REVIEW MODAL - LIST VIEW
-        const CountReviewModal = ({ isOpen, onClose, data, onUpdate }) => {
-            if (!isOpen) return null;
-
-            const zonesConfig = {
-                bar1: [
-                    { id: 'bar1_cooler', label: 'Cooler', icon: '🧊' },
-                    { id: 'bar1_small_cooler_1', label: 'Small 1', icon: '❄️' },
-                    { id: 'bar1_small_cooler_2', label: 'Small 2', icon: '❄️' },
-                    { id: 'bar1_reaching', label: 'Reaching', icon: '✋' },
-                    { id: 'bar1_shelf_full', label: 'Shelf Full', icon: '🍾' },
-                    { id: 'bar1_shelf_open', label: 'Shelf Open', icon: '🥃' },
-                    { id: 'bar1_well_1', label: 'Well 1', icon: '🥃' },
-                    { id: 'bar1_well_2', label: 'Well 2', icon: '🥃' }
-                ],
-                bar2: [{ id: 'bar2_cooler', label: 'Cooler', icon: '🧊' }, { id: 'bar2_small_cooler', label: 'Small Cooler', icon: '❄️' }],
-                bodega: [{ id: 'bodega_closet', label: 'Closet', icon: '🚪' }, { id: 'bodega_shelves', label: 'Shelves', icon: '🗄️' }]
+            const updateValue = (next) => {
+                setValue(next); 
+                if (zones.length > 0) { 
+                    let newTotal = 0; 
+                    zones.forEach(z => { if (z.id === subZoneId) newTotal += next; else newTotal += (parseFloat(item[z.id]) || 0); }); 
+                    onUpdate(item.id, { [subZoneId]: next, [initialLocation]: newTotal }); 
+                } else { 
+                    onUpdate(item.id, initialLocation, next); 
+                }
             };
-            
-            const mainLocations = [
-                { id: 'bar1', label: 'Bar 1', color: 'text-blue-400', bg: 'bg-blue-900/20', border: 'border-blue-500/30' },
-                { id: 'bar2', label: 'Bar 2', color: 'text-purple-400', bg: 'bg-purple-900/20', border: 'border-purple-500/30' },
-                { id: 'bodega', label: 'Storage', color: 'text-amber-400', bg: 'bg-amber-900/20', border: 'border-amber-500/30' },
-                { id: 'barroluco', label: 'Barroluco', color: 'text-rose-400', bg: 'bg-rose-900/20', border: 'border-rose-500/30' }
-            ];
 
-            const getItemsForField = (fieldId) => {
-                const found = [];
-                data.forEach(cat => {
-                    cat.items.forEach(item => {
-                        const val = parseFloat(item[fieldId]);
-                        if (!isNaN(val) && val > 0) {
-                            found.push({ ...item, currentVal: val });
-                        }
+            const connectScale = async () => {
+                setScaleError(null);
+                try {
+                    // INTENTAMOS CONECTAR A TODOS LOS SERVICIOS CONOCIDOS (ESTANDAR Y ETEKCITY/ISSC)
+                    const device = await navigator.bluetooth.requestDevice({
+                        filters: [{ services: ['weight_scale'] }, { services: ['0000fff0-0000-1000-8000-00805f9b34fb'] }],
+                        optionalServices: ['weight_scale', '0000fff0-0000-1000-8000-00805f9b34fb']
                     });
-                });
-                return found;
-            };
+                    
+                    const server = await device.gatt.connect();
+                    
+                    let service;
+                    let charUUID;
 
-            const grandTotal = data.reduce((acc, cat) => {
-                return acc + cat.items.reduce((iAcc, item) => {
-                     const t = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0);
-                     return iAcc + t;
-                }, 0);
-            }, 0);
-
-            return (
-                <div className="fixed inset-0 bg-black/95 flex flex-col z-[100] backdrop-blur-md animate-in">
-                    <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#1D1F23]">
-                        <div>
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Icons.List className="text-emerald-400" /> Count Double Check
-                            </h2>
-                            <p className="text-xs text-[#f0f6fc]/50 font-mono mt-0.5">Total Physical Units: <span className="text-white font-bold">{grandTotal}</span></p>
-                        </div>
-                        <button onClick={onClose} className="p-2 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462] font-bold text-sm">Close</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                        {mainLocations.map(mainLoc => {
-                            const subZones = zonesConfig[mainLoc.id];
-                            
-                            if (subZones) {
-                                const zonesWithData = subZones.map(z => ({...z, items: getItemsForField(z.id)})).filter(z => z.items.length > 0);
-                                if (zonesWithData.length === 0) return null;
-
-                                return (
-                                    <div key={mainLoc.id} className="space-y-3">
-                                        <div className={`sticky top-0 z-10 px-3 py-2 rounded-lg border backdrop-blur-md ${mainLoc.bg} ${mainLoc.border}`}>
-                                            <h3 className={`font-black text-lg uppercase tracking-wider ${mainLoc.color}`}>{mainLoc.label}</h3>
-                                        </div>
-                                        {zonesWithData.map(zone => (
-                                            <div key={zone.id} className="pl-2 border-l-2 border-[#3A4048] ml-2">
-                                                <h4 className="text-sm font-bold text-[#f0f6fc]/70 mb-2 flex items-center gap-2 px-2">
-                                                    <span className="text-lg">{zone.icon}</span> {zone.label}
-                                                </h4>
-                                                <div className="grid gap-2">
-                                                    {zone.items.map(item => (
-                                                        <div key={item.id} className="bg-[#1D1F23] p-3 rounded-xl border border-[#3A4048] flex justify-between items-center shadow-sm">
-                                                            <div className="font-medium text-white">{item.name}</div>
-                                                            <div className="flex items-center gap-2 bg-black/30 rounded-lg px-2 py-1 border border-[#3A4048]">
-                                                                <span className="text-[10px] text-[#f0f6fc]/40 uppercase font-bold">Qty</span>
-                                                                <input 
-                                                                    type="number" 
-                                                                    value={item.currentVal} 
-                                                                    onChange={(e) => {
-                                                                        const val = parseFloat(e.target.value) || 0;
-                                                                        let newTotal = val; 
-                                                                        subZones.forEach(z => {
-                                                                            if (z.id !== zone.id) {
-                                                                                newTotal += (parseFloat(item[z.id]) || 0);
-                                                                            }
-                                                                        });
-                                                                        onUpdate(item.id, {
-                                                                            [zone.id]: val,
-                                                                            [mainLoc.id]: newTotal
-                                                                        });
-                                                                    }}
-                                                                    className="w-16 bg-transparent text-right font-mono font-bold text-white focus:outline-none"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                );
-                            } else {
-                                const items = getItemsForField(mainLoc.id);
-                                if (items.length === 0) return null;
-                                
-                                return (
-                                    <div key={mainLoc.id} className="space-y-3">
-                                        <div className={`sticky top-0 z-10 px-3 py-2 rounded-lg border backdrop-blur-md ${mainLoc.bg} ${mainLoc.border}`}>
-                                            <h3 className={`font-black text-lg uppercase tracking-wider ${mainLoc.color}`}>{mainLoc.label}</h3>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            {items.map(item => (
-                                                <div key={item.id} className="bg-[#1D1F23] p-3 rounded-xl border border-[#3A4048] flex justify-between items-center shadow-sm">
-                                                    <div className="font-medium text-white">{item.name}</div>
-                                                    <div className="flex items-center gap-2 bg-black/30 rounded-lg px-2 py-1 border border-[#3A4048]">
-                                                        <span className="text-[10px] text-[#f0f6fc]/40 uppercase font-bold">Qty</span>
-                                                        <input 
-                                                            type="number" 
-                                                            value={item.currentVal}
-                                                            onChange={(e) => onUpdate(item.id, mainLoc.id, e.target.value)}
-                                                            className="w-16 bg-transparent text-right font-mono font-bold text-white focus:outline-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            }
-                        })}
-                        
-                        {grandTotal === 0 && (
-                            <div className="text-center text-[#f0f6fc]/30 py-20 flex flex-col items-center">
-                                <Icons.List size={64} className="mb-4 opacity-20" />
-                                <p>No items counted yet.</p>
-                                <p className="text-sm mt-2">Start scanning or enter counts manually.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        // NEW: LOCATION SELECTION MODAL (Step 1 & 2)
-        const LocationSelectionModal = ({ isOpen, onClose, onSelect }) => {
-            if (!isOpen) return null;
-            const [selectedMain, setSelectedMain] = useState(null);
-
-            const locations = [
-                { id: 'bar1', label: 'Bar 1', icon: Icons.Beer },
-                { id: 'bar2', label: 'Bar 2', icon: Icons.Wine },
-                { id: 'bodega', label: 'Storage', icon: Icons.Box },
-                { id: 'barroluco', label: 'Barroluco', icon: Icons.MapPin },
-                { id: 'purchases', label: 'Purchases', icon: Icons.ShoppingCart }
-            ];
-
-            const zonesConfig = {
-                bar1: [
-                    // GROUP 1: COOLER AREA
-                    { id: 'bar1_cooler', label: 'Cooler Beer', icon: '🧊', group: 'Cooler Area' }, 
-                    { id: 'bar1_small_cooler_1', label: 'Small 1', icon: '❄️', group: 'Cooler Area' }, 
-                    { id: 'bar1_small_cooler_2', label: 'Small 2', icon: '❄️', group: 'Cooler Area' },
-                    // GROUP 2: REACHING / WELLS
-                    { id: 'bar1_reaching', label: 'Reaching', icon: '✋', group: 'Reaching/Wells' }, 
-                    { id: 'bar1_well_1', label: 'Well 1', icon: '🥃', group: 'Reaching/Wells' }, 
-                    { id: 'bar1_well_2', label: 'Well 2', icon: '🥃', group: 'Reaching/Wells' },
-                    // GROUP 3: SHELF
-                    { id: 'bar1_shelf_full', label: 'Shelf Full', icon: '🍾', group: 'Shelf' }, 
-                    { id: 'bar1_shelf_open', label: 'Shelf Open', icon: '🥃', group: 'Shelf' }
-                ],
-                bar2: [{ id: 'bar2_cooler', label: 'Cooler', icon: '🧊' }, { id: 'bar2_small_cooler', label: 'Small Cooler', icon: '❄️' }],
-                bodega: [{ id: 'bodega_closet', label: 'Closet', icon: '🚪' }, { id: 'bodega_shelves', label: 'Shelves', icon: '🗄️' }]
-            };
-
-            const [selectedGroup, setSelectedGroup] = useState(null);
-
-            const handleMainClick = (locId) => {
-                if (zonesConfig[locId]) {
-                    setSelectedMain(locId); 
-                    setSelectedGroup(null); // Reset group on main change
-                } else {
-                    onSelect(locId, null); 
-                }
-            };
-
-            // Helper to get unique groups for Bar 1
-            const bar1Groups = ['Cooler Area', 'Reaching/Wells', 'Shelf'];
-
-            return (
-                // BACKDROP SEMI-TRANSPARENTE (80%) CON Z-INDEX MÁXIMO
-                <div className="fixed inset-0 bg-black/95 flex flex-col z-[9999] backdrop-blur-sm animate-in p-4 items-center justify-center">
-                    {/* VENTANA FLOTANTE AJUSTADA - AUTO HEIGHT */}
-                    <div className="w-full max-w-4xl bg-[#1D1F23] rounded-2xl border border-[#3A4048] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-                         <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#121212] shrink-0">
-                            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                                {selectedMain ? (selectedGroup ? `Select Zone in ${selectedGroup}` : `Select Area in ${locations.find(l=>l.id===selectedMain)?.label}`) : "Select Location"}
-                            </h2>
-                            <div className="flex gap-2">
-                                {(selectedMain || selectedGroup) && (
-                                    <button 
-                                        onClick={() => {
-                                            if (selectedGroup) setSelectedGroup(null); // Go back to groups
-                                            else setSelectedMain(null); // Go back to main
-                                        }}
-                                        className="px-3 py-1 bg-[#3A4048] text-white rounded-lg hover:bg-[#4A5462] font-bold text-[10px] border border-[#4A5462] flex items-center gap-1"
-                                    >
-                                        ← Back
-                                    </button>
-                                )}
-                                <button onClick={onClose} className="px-3 py-1 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462] font-bold text-[10px] border border-[#4A5462]">Cancel</button>
-                            </div>
-                        </div>
-                        
-                        <div className="p-4 overflow-y-auto"> 
-                            {!selectedMain ? (
-                                // GRID DE 5 COLUMNAS - BOTONES PEQUEÑOS Y VISIBLES
-                                <div className="grid grid-cols-5 gap-2">
-                                {locations.map(loc => (
-                                    <button 
-                                        key={loc.id} 
-                                        onClick={() => handleMainClick(loc.id)}
-                                        className="bg-[#2A2D33] hover:bg-indigo-600 text-white p-2 rounded-xl border border-[#3A4048] flex flex-col items-center justify-center gap-1 transition-all group shadow-md active:scale-95 h-16 w-full"
-                                    >
-                                        <div className="p-1 bg-black/30 rounded-full group-hover:bg-white/10 transition-colors shrink-0">
-                                            <loc.icon size={16} />
-                                        </div>
-                                        <span className="font-bold text-[9px] text-center leading-tight">{loc.label}</span>
-                                    </button>
-                                ))}
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 gap-2">
-                                    {/* SPECIAL LOGIC FOR BAR 1 GROUPS */}
-                                    {selectedMain === 'bar1' && !selectedGroup ? (
-                                         <div className="grid grid-cols-3 gap-2">
-                                            {bar1Groups.map(group => (
-                                                <button 
-                                                    key={group}
-                                                    onClick={() => setSelectedGroup(group)}
-                                                    className="bg-[#2A2D33] hover:bg-blue-600 text-white p-2 rounded-xl border border-[#3A4048] flex flex-col items-center justify-center gap-1 transition-all shadow-md active:scale-95 h-16"
-                                                >
-                                                    <span className="font-bold text-xs text-center leading-tight">{group}</span>
-                                                </button>
-                                            ))}
-                                         </div>
-                                    ) : (
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {zonesConfig[selectedMain]
-                                                .filter(z => !selectedGroup || z.group === selectedGroup) // Filter by group if set
-                                                .map(zone => (
-                                                <button 
-                                                    key={zone.id}
-                                                    onClick={() => onSelect(selectedMain, zone.id)}
-                                                    className="bg-[#2A2D33] hover:bg-emerald-600 text-white p-2 rounded-xl border border-[#3A4048] flex flex-col items-center gap-1 transition-all shadow-md active:scale-95 h-16 justify-center"
-                                                >
-                                                    <span className="text-lg">{zone.icon}</span>
-                                                    <span className="font-bold text-[9px] text-center leading-tight">{zone.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const ScannerModal = ({ onScanSuccess, onClose }) => {
-            const [scanError, setScanError] = useState(null);
-            const scannerRef = useRef(null);
-            useEffect(() => {
-                if (!window.Html5QrcodeScanner) { setScanError("Lib not loaded"); return; }
-                const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
-                if (!isSecure) { setScanError("Camera requires HTTPS."); return; }
-                if (!scannerRef.current) {
+                    // 1. Intentar Etekcity/ISSC (FFF0)
                     try {
-                        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, false);
-                        scannerRef.current = scanner;
-                        scanner.render((decodedText) => { onScanSuccess(decodedText, scanner); }, (error) => {});
-                    } catch(err) { console.error(err); setScanError("Camera error."); }
+                        service = await server.getPrimaryService('0000fff0-0000-1000-8000-00805f9b34fb');
+                        charUUID = '0000fff1-0000-1000-8000-00805f9b34fb';
+                    } catch(e) {
+                        // 2. Si falla, intentar estándar
+                        service = await server.getPrimaryService('weight_scale');
+                        charUUID = 'weight_measurement';
+                    }
+
+                    const characteristic = await service.getCharacteristic(charUUID);
+                    await characteristic.startNotifications();
+                    characteristic.addEventListener('characteristicvaluechanged', handleScaleData);
+                    setScaleConnected(true);
+                    playSound('success');
+
+                } catch (error) {
+                    console.error(error);
+                    setScaleError("Fail: " + error.message);
+                    playSound('error');
                 }
-                return () => { if (scannerRef.current) { try { scannerRef.current.clear().catch(err => console.warn(err)); } catch(e) { console.warn(e); } } };
+            };
+
+            const handleScaleData = (event) => {
+                const data = event.target.value;
+                
+                // --- DEBUG HEX (PARA VER QUE MANDA LA BALANZA) ---
+                let hexArr = [];
+                for(let i=0; i<data.byteLength; i++) hexArr.push(data.getUint8(i).toString(16).padStart(2,'0').toUpperCase());
+                setRawHex(hexArr.join(' '));
+                // ------------------------------------------------
+
+                let weight = 0;
+                
+                // ESTRATEGIA DE DECODIFICACIÓN
+                if (data.byteLength >= 4) {
+                     // Intento genérico: muchos chips ISSC mandan el peso en bytes 1-2 o 2-3
+                     // Probamos leer Uint16 en diferentes offsets hasta encontrar algo sensato (0-5000g)
+                     const w1 = data.getUint16(0, false); // Big Endian offset 0
+                     const w2 = data.getUint16(1, false); // Big Endian offset 1
+                     
+                     if(w1 > 0 && w1 < 10000) weight = w1;
+                     else if(w2 > 0 && w2 < 10000) weight = w2;
+                     else weight = data.getUint16(0, true); // Little Endian
+                }
+                
+                // Si el valor tiene sentido, lo usamos
+                if(weight > 0) {
+                     setScaleWeight(weight);
+                     playSound('blip');
+                }
+            };
+
+            const applyWeight = () => {
+                if(scaleWeight !== null) {
+                    // Asumimos que la balanza manda GRAMOS. Convertimos a unidades decimales (Litros/Kg)
+                    // Ej: 450g -> 0.45
+                    const val = scaleWeight / 1000; 
+                    updateValue(val);
+                    playSound('success');
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/95 flex flex-col items-center justify-center z-50 p-2 animate-in"><div className="w-full max-w-md bg-gray-900 rounded-3xl border border-gray-700 overflow-hidden flex flex-col h-[90vh]"><div className="p-4 bg-black border-b border-gray-800 flex justify-between items-center"><div><h2 className="text-2xl font-bold text-white leading-none">{item.name}</h2><div className="text-xs text-indigo-400 font-mono mt-1 uppercase">{initialLocation} {subZoneLabel ? `> ${subZoneLabel}` : ''}</div></div><button onClick={onClose} className="bg-gray-800 text-white p-3 rounded-xl font-bold">✕</button></div><div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-black"><div className="text-[6rem] font-black text-white font-mono tracking-tighter leading-none mb-4">{value}</div><div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm mb-4"><div className="flex flex-col gap-2 items-end"><button onClick={()=>handleDelta(-12)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 12</button><button onClick={()=>handleDelta(-6)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 6</button><button onClick={()=>handleDelta(-1)} className="w-full h-14 bg-red-600 text-white rounded-xl font-black text-2xl shadow-lg border border-red-400">- 1</button></div><div className="flex flex-col gap-2 items-start"><button onClick={()=>handleDelta(12)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 12</button><button onClick={()=>handleDelta(6)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 6</button><button onClick={()=>handleDelta(1)} className="w-full h-14 bg-emerald-600 text-white rounded-xl font-black text-2xl shadow-lg border border-emerald-400">+ 1</button></div></div><div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm"><button onClick={()=>handleDelta(-0.1)} className="bg-gray-800 text-red-400 h-12 rounded-xl font-bold text-lg border border-gray-700">- 0.1</button><button onClick={()=>handleDelta(0.1)} className="bg-gray-800 text-emerald-400 h-12 rounded-xl font-bold text-lg border border-gray-700">+ 0.1</button></div>
+                
+                {/* --- SCALE UI SECTION --- */}
+                <div className="mt-6 w-full px-6 max-w-sm">
+                    {!scaleConnected ? (
+                        <button onClick={connectScale} className="w-full py-3 bg-blue-900/30 border border-blue-500/50 rounded-xl text-blue-400 font-bold flex items-center justify-center gap-2 hover:bg-blue-900/50 transition-colors">
+                            <Icons.Bluetooth /> Connect Etekcity
+                        </button>
+                    ) : (
+                        <div className="bg-blue-900/20 border border-blue-500/50 rounded-xl p-2 flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 pl-2">
+                                    <div className={`w-3 h-3 rounded-full bg-blue-500 ${rawHex?'bluetooth-glow':''}`}></div>
+                                    <div className="text-2xl font-mono font-bold text-white">{scaleWeight !== null ? `${scaleWeight}g` : '0g'}</div>
+                                </div>
+                                <button onClick={applyWeight} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm active:scale-95">USE</button>
+                            </div>
+                            {/* RAW HEX DEBUGGER (Para calibración) */}
+                            <div className="text-[10px] font-mono text-blue-300/50 text-center uppercase tracking-widest break-all">RAW: {rawHex || "WAITING DATA..."}</div>
+                        </div>
+                    )}
+                    {scaleError && <div className="text-red-500 text-xs text-center mt-2 font-mono">{scaleError}</div>}
+                </div>
+                {/* ------------------------ */}
+
+                </div><button onClick={onContinue} className="m-4 bg-indigo-600 text-white font-black text-xl h-14 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">DONE <span className="text-xs font-normal opacity-70">(Next Scan)</span></button></div></div>
+            );
+        };
+
+        const LocationModal = ({ onClose, onSelect }) => {
+            const locs = [{id:'bar1',l:'Bar 1',i:Icons.Beer},{id:'bar2',l:'Bar 2',i:Icons.Wine},{id:'bodega',l:'Bodega',i:Icons.Box},{id:'barroluco',l:'Barroluco',i:Icons.MapPin}];
+            const [selMain, setSelMain] = useState(null);
+            return (
+                <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"><div className="w-full max-w-lg bg-gray-900 rounded-2xl border border-gray-700 overflow-hidden flex flex-col max-h-[80vh]"><div className="p-4 border-b border-gray-800 flex justify-between items-center"><h2 className="text-white font-bold">{selMain ? 'Select Zone' : 'Select Location'}</h2><button onClick={onClose} className="text-gray-400 font-bold">Cancel</button></div><div className="p-4 overflow-y-auto grid grid-cols-2 gap-3">{!selMain ? locs.map(l=><button key={l.id} onClick={()=>{if(ZONES_CONFIG[l.id]) setSelMain(l.id); else onSelect(l.id, null);}} className="bg-gray-800 hover:bg-indigo-600 text-white p-4 rounded-xl border border-gray-700 flex flex-col items-center gap-2 transition-all"><l.i className="w-8 h-8 opacity-50"/><span>{l.l}</span></button>) : ZONES_CONFIG[selMain].map(z=><button key={z.id} onClick={()=>onSelect(selMain, z.id)} className="bg-gray-800 hover:bg-emerald-600 text-white p-4 rounded-xl border border-gray-700 flex flex-col items-center gap-2 transition-all"><span className="text-2xl">{z.icon}</span><span>{z.label}</span></button>)}</div></div></div>
+            );
+        };
+
+        const ScannerModal = ({ onScan, onClose }) => {
+            useEffect(() => {
+                const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+                scanner.render(onScan, (e)=>{});
+                return () => scanner.clear().catch(()=>{});
             }, []);
             return (
-                <div className="fixed inset-0 bg-black/95 flex flex-col z-50 animate-in">
-                    <div className="p-4 flex justify-between items-center bg-[#1D1F23] border-b border-[#3A4048]">
-                        <h3 className="text-white font-bold flex items-center gap-2"><Icons.Scan className="text-amber-500" /> Scan Barcode</h3>
-                        
-                        {/* EXIT BUTTON ADDED */}
-                        <button onClick={onClose} className="bg-red-900/20 text-red-400 hover:bg-red-900/40 px-3 py-1.5 rounded-lg border border-red-900/50 text-xs font-bold uppercase tracking-wider transition-colors">
-                            Exit / Change Zone
-                        </button>
-                    </div>
-                    <div className="flex-1 flex flex-col items-center justify-center p-4 relative">{scanError ? <div className="bg-red-900/50 border border-red-500 p-6 rounded-xl text-center max-w-sm text-red-200">{scanError}</div> : <div id="reader" className="w-full max-w-sm bg-black rounded-xl overflow-hidden border-2 border-indigo-500/50 shadow-2xl"></div>}<div className="mt-6 text-[#f0f6fc]/40 text-sm font-medium">Position the barcode inside the box</div></div>
-                </div>
+                <div className="fixed inset-0 bg-black z-40 flex flex-col"><div className="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center"><h2 className="text-white font-bold">Scanning...</h2><button onClick={onClose} className="text-red-400 font-bold">Close</button></div><div className="flex-1 flex items-center justify-center p-4 bg-black"><div id="reader" className="w-full max-w-sm border-2 border-indigo-500 rounded-xl"></div></div></div>
             );
         };
 
-        const ChartsView = ({ data, onClose }) => {
-            const canvasRef = useRef(null);
-            const chartInstance = useRef(null);
-            const { activeItems, totals, categoryData } = useMemo(() => {
-                let items = []; let totalConsumed = 0; let totalSold = 0; let totalDiff = 0; let catMap = {};
-                data.forEach(cat => {
-                    let catSales = 0; 
-                    cat.items.forEach(item => {
-                        const totalPhys = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0);
-                        const totalStart = (parseFloat(item.start_bar1)||0) + (parseFloat(item.start_bar2)||0) + (parseFloat(item.start_bodega)||0) + (parseFloat(item.start_barroluco)||0);
-                        const purchases = parseFloat(item.purchases)||0; const sales = parseFloat(item.sales)||0;
-                        const systemConsumption = totalStart + purchases - totalPhys;
-                        const diff = sales - systemConsumption;
-                        if (systemConsumption > 0 || sales > 0) {
-                            items.push({ ...item, systemConsumption, sales, diff });
-                            totalConsumed += systemConsumption; totalSold += sales; totalDiff += diff; catSales += sales;
-                        }
-                    });
-                    if (catSales > 0) catMap[cat.category] = catSales;
-                });
-                return { activeItems: items.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff)), totals: { totalConsumed, totalSold, totalDiff }, categoryData: catMap };
-            }, [data]);
+        function App() {
+            const [auth, setAuth] = useState(false);
+            const [data, setData] = useState([]);
+            const [loc, setLoc] = useState('bar1');
+            const [subZone, setSubZone] = useState(null);
+            const [scanning, setScanning] = useState(false);
+            const [editItem, setEditItem] = useState(null);
+            const [showLoc, setShowLoc] = useState(false);
+            const [showCheck, setShowCheck] = useState(false);
+            const [search, setSearch] = useState("");
+            const [status, setStatus] = useState("Connecting...");
+            const [pendingBarcode, setPendingBarcode] = useState(null);
 
             useEffect(() => {
-                if (canvasRef.current && window.Chart) {
-                    if (chartInstance.current) chartInstance.current.destroy();
-                    const ctx = canvasRef.current.getContext('2d');
-                    chartInstance.current = new window.Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(categoryData), datasets: [{ data: Object.values(categoryData), backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'], borderColor: '#0A0A0A', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11, family: 'monospace' }, boxWidth: 12 } } } } });
-                }
-                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
-            }, [categoryData]);
-
-            return (
-                <div className="fixed inset-0 bg-[#0A0A0A] flex flex-col z-50 animate-in overflow-hidden">
-                    <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#1D1F23] backdrop-blur-md">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-3"><div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20"><Icons.BarChart className="text-indigo-400" size={20} /></div>Performance Analytics</h2>
-                        <button onClick={onClose} className="px-4 py-2 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462] hover:text-white transition-colors text-sm font-medium border border-[#4A5462]">Close</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-3 flex flex-col">
-                                <div className="flex-1 bg-[#1D1F23] p-5 rounded-2xl border border-[#3A4048] shadow-lg flex flex-col justify-center"><div className="text-[11px] text-[#f0f6fc]/60 uppercase font-bold tracking-wider mb-2 flex items-center gap-2"><Icons.Package size={14} className="text-[#f0f6fc]/40"/> Total Consumed</div><div className="text-4xl font-black text-white">{totals.totalConsumed.toFixed(1)}</div></div>
-                                <div className="flex-1 bg-[#1D1F23] p-5 rounded-2xl border border-[#3A4048] shadow-lg flex flex-col justify-center"><div className="text-[11px] text-indigo-300 uppercase font-bold tracking-wider mb-2 flex items-center gap-2"><Icons.DollarSign size={14} className="text-indigo-500"/> Total Sales (POS)</div><div className="text-4xl font-black text-indigo-400">{totals.totalSold.toFixed(1)}</div></div>
-                                <div className={`flex-1 p-5 rounded-2xl border shadow-lg flex flex-col justify-center ${totals.totalDiff < 0 ? 'border-red-500/30 bg-red-900/10' : 'border-emerald-500/30 bg-emerald-900/10'} bg-[#1D1F23]`}><div className={`text-[11px] uppercase font-bold tracking-wider mb-2 flex items-center gap-2 ${totals.totalDiff < 0 ? 'text-red-400' : 'text-emerald-400'}`}><Icons.RotateCcw size={14}/> Net Difference</div><div className={`text-4xl font-black ${totals.totalDiff < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{totals.totalDiff > 0 ? '+' : ''}{totals.totalDiff.toFixed(1)}</div></div>
-                            </div>
-                            <div className="bg-[#1D1F23] p-2 rounded-2xl border border-[#3A4048] shadow-lg min-h-[250px] relative flex flex-col"><div className="absolute top-4 left-4 text-xs font-bold text-[#f0f6fc]/50 uppercase tracking-widest z-10">Sales Share</div><div className="flex-1 relative mt-4"><canvas ref={canvasRef}></canvas></div></div>
-                        </div>
-                        <div className="space-y-3"><h3 className="text-xs font-bold text-[#f0f6fc]/50 uppercase tracking-widest px-1 mt-6">Detailed Breakdown</h3>{activeItems.map(item => (<div key={item.id} className="bg-[#1D1F23] border border-[#3A4048] p-5 rounded-2xl relative overflow-hidden group hover:border-[#4A5462] transition-all shadow-md"><div className="flex justify-between items-start mb-5 pl-2 relative z-10"><div><div className="font-bold text-white text-lg leading-tight tracking-tight">{item.name}</div><div className="text-[10px] text-[#f0f6fc]/50 font-mono mt-1 flex items-center gap-2">ID: {item.id}</div></div><div className={`px-3 py-1.5 rounded-lg text-sm font-black font-mono border min-w-[60px] text-center shadow-sm ${item.diff < -0.1 ? 'bg-red-500/10 text-red-400 border-red-500/20' : item.diff > 0.1 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[#3A4048] text-[#f0f6fc]/60 border-[#4A5462]'}`}>{item.diff > 0 ? '+' : ''}{item.diff.toFixed(2)}</div></div></div>))}</div>
-                    </div>
-                </div>
-            );
-        };
-
-        const PurchasesLogModal = ({ isOpen, onClose, data }) => {
-            if (!isOpen) return null;
-            const purchasedItems = []; let totalPurchasedUnits = 0;
-            data.forEach(cat => { cat.items.forEach(item => { const val = parseFloat(item.purchases); if (!isNaN(val) && val > 0) { purchasedItems.push({ ...item, categoryName: cat.category, purchaseVal: val }); totalPurchasedUnits += val; } }); });
-            return (
-                <div className="fixed inset-0 bg-black/90 flex flex-col z-[80] backdrop-blur-sm animate-in overflow-hidden">
-                    <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#1D1F23]">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.Package className="text-emerald-400" /> Purchases Log</h2>
-                        <button onClick={onClose} className="p-2 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462]">Close</button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4">
-                        {purchasedItems.length === 0 ? <div className="text-center text-[#f0f6fc]/50 mt-20"><p className="text-lg">No purchases recorded this period.</p></div> : <div className="space-y-4"><div className="bg-[#1D1F23] p-4 rounded-xl border border-[#3A4048]"><div className="text-xs text-[#f0f6fc]/50 uppercase font-bold tracking-wider">Total Added Units</div><div className="text-3xl font-black text-emerald-400">{totalPurchasedUnits}</div></div><div className="grid gap-2">{purchasedItems.map((item, idx) => (<div key={idx} className="bg-[#1D1F23] p-3 rounded-lg border border-[#3A4048] flex justify-between items-center"><div><div className="font-bold text-white">{item.name}</div><div className="text-[10px] text-[#f0f6fc]/50">{item.categoryName}</div></div><div className="text-emerald-400 font-mono font-bold text-lg">+{item.purchaseVal}</div></div>))}</div></div>}
-                    </div>
-                </div>
-            );
-        };
-        
-        const SalesEntryModal = ({ isOpen, onClose, data, onUpdate, onBatchUpdate }) => {
-            if (!isOpen) return null;
-            const [searchTerm, setSearchTerm] = useState("");
-            const [activeTab, setActiveTab] = useState('products'); 
-            
-            const filteredData = useMemo(() => {
-                if (!searchTerm) return data;
-                const lowerTerm = searchTerm.toLowerCase();
-                return data.map(cat => ({ ...cat, items: cat.items.filter(item => item.name.toLowerCase().includes(lowerTerm)) })).filter(cat => cat.items.length > 0);
-            }, [data, searchTerm]);
-
-            const filteredCocktails = useMemo(() => {
-                if (!searchTerm) return COCKTAIL_RECIPES;
-                const lowerTerm = searchTerm.toLowerCase();
-                return COCKTAIL_RECIPES.filter(c => c.name.toLowerCase().includes(lowerTerm));
-            }, [searchTerm]);
-
-            const filteredPitchers = useMemo(() => {
-                if (!searchTerm) return PITCHER_RECIPES;
-                const lowerTerm = searchTerm.toLowerCase();
-                return PITCHER_RECIPES.filter(c => c.name.toLowerCase().includes(lowerTerm));
-            }, [searchTerm]);
-
-            const handleLocalSalesChange = (item, type, val, categoryName) => {
-                let newBottles = type === 'bottles' ? val : (item.sold_bottles || ""); 
-                let newShots = type === 'shots' ? val : (item.sold_shots || ""); 
-                let newComps = type === 'comps' ? val : (item.sold_comps || "");
-                const b = parseFloat(newBottles) || 0; const s = parseFloat(newShots) || 0; const c = parseFloat(newComps) || 0;
-                const isUnitBased = categoryName.includes("Beers") || categoryName.includes("Seltzer") || categoryName.includes("Non Alcoholic");
-                const isWells = categoryName.includes("Wells");
-                const bottleSizeOz = isWells ? 33.814 : 25.36;
-                let totalSales = 0; if (isUnitBased) totalSales = b + (s * 6) + c; else totalSales = b + ((s * 1.2) / bottleSizeOz) + c;
-                onUpdate(item.id, { sold_bottles: newBottles, sold_shots: newShots, sold_comps: newComps, sales: totalSales > 0 ? totalSales.toFixed(2) : "" });
-            };
-
-            const [recipeQuantities, setRecipeQuantities] = useState({});
-
-            const handleRecipeQtyChange = (name, val) => {
-                setRecipeQuantities(prev => ({...prev, [name]: val}));
-            };
-
-            const handleAddRecipe = (recipe) => {
-                const qtyToAdd = parseInt(recipeQuantities[recipe.name] || 1);
-                if (qtyToAdd <= 0) return;
-
-                const updates = [];
-                let foundAny = false;
-
-                recipe.ingredients.forEach(ing => {
-                    for (const cat of data) {
-                        const item = cat.items.find(i => i.name === ing.name);
-                        if (item) {
-                            foundAny = true;
-                            // Add quantities
-                            const currentShots = parseFloat(item.sold_shots) || 0;
-                            const addedShots = ing.qty * qtyToAdd;
-                            const newShots = currentShots + addedShots;
-                            
-                            // Re-calc Sales
-                            const isWells = cat.category.includes("Wells");
-                            const bottleSizeOz = isWells ? 33.814 : 25.36;
-                            const b = parseFloat(item.sold_bottles) || 0;
-                            const c = parseFloat(item.sold_comps) || 0;
-                            const totalSales = b + ((newShots * 1.2) / bottleSizeOz) + c;
-
-                            // Check if this item is already in updates array
-                            const existingUpdateIndex = updates.findIndex(u => u.id === item.id);
-                            if (existingUpdateIndex >= 0) {
-                                updates[existingUpdateIndex].changes.sold_shots += addedShots;
-                                const combinedShots = updates[existingUpdateIndex].changes.sold_shots;
-                                const combinedSales = b + ((combinedShots * 1.2) / bottleSizeOz) + c;
-                                updates[existingUpdateIndex].changes.sales = combinedSales > 0 ? combinedSales.toFixed(2) : "";
-                            } else {
-                                updates.push({
-                                    id: item.id,
-                                    changes: { sold_shots: newShots, sales: totalSales > 0 ? totalSales.toFixed(2) : "" }
-                                });
-                            }
-                            break; 
-                        }
-                    }
+                const app = window.fb.initializeApp(FIREBASE_CONFIG);
+                const auth = window.fb.getAuth(app);
+                const db = window.fb.getFirestore(app);
+                window.fb.signInAnonymously(auth);
+                window.fb.onAuthStateChanged(auth, (u) => {
+                    if (u) {
+                        setStatus("Cloud Connected ☁️");
+                        const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
+                        window.fb.onSnapshot(window.fb.doc(db, path, 'master'), (s) => {
+                            if(s.exists()) setData(s.data().items);
+                        });
+                    } else setStatus("Offline");
                 });
-                
-                if (updates.length > 0) {
-                    onBatchUpdate(updates);
-                    // Reset input
-                    setRecipeQuantities(prev => ({...prev, [recipe.name]: ""}));
+            }, []);
+
+            const handleUpdate = (id, fieldOrObj, val) => {
+                const newData = data.map(cat => ({
+                    ...cat, 
+                    items: cat.items.map(i => {
+                        if(i.id === id) {
+                            if(typeof fieldOrObj === 'object') return {...i, ...fieldOrObj};
+                            return {...i, [fieldOrObj]: val};
+                        }
+                        return i;
+                    })
+                }));
+                setData(newData);
+                const db = window.fb.getFirestore();
+                const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
+                window.fb.setDoc(window.fb.doc(db, path, 'master'), { items: newData }).catch(console.error);
+            };
+
+            const handleBackup = () => {
+                const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `Mobile_Scan_Backup_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const handleScan = (txt) => {
+                let found = null;
+                for(const c of data) { const m = c.items.find(i => (i.barcode && i.barcode.includes(txt)) || (i.barcode_case && i.barcode_case === txt)); if(m){found=m; break;} }
+                if(found) { 
+                    setEditItem(found); 
+                    setScanning(false); 
+                    playSound('success'); 
+                } else {
+                    playSound('error');
+                    setPendingBarcode(txt);
+                    setScanning(false);
                 }
             };
 
-            // Render Helper for Cocktails/Pitchers
-            const renderRecipeList = (list) => (
-                <div className="grid gap-3">
-                    {list.map((recipe, idx) => (
-                        <div key={idx} className="bg-[#1D1F23] p-4 rounded-xl border border-[#3A4048] shadow-lg flex justify-between items-center">
-                            <div className="flex-1 mr-4">
-                                <h3 className="font-bold text-white text-base">{recipe.name}</h3>
-                                <div className="text-xs text-[#f0f6fc]/50 mt-1">{recipe.ingredients.map(ing => `${ing.qty} ${ing.name}`).join(', ')}</div>
+            const handleLinkBarcode = (item) => {
+                const currentCodes = item.barcode ? item.barcode : "";
+                const newCodes = currentCodes ? `${currentCodes},${pendingBarcode}` : pendingBarcode;
+                handleUpdate(item.id, 'barcode', newCodes);
+                setPendingBarcode(null);
+                setEditItem(item); 
+                playSound('success');
+            };
+
+            const filteredData = useMemo(() => {
+                const term = search.toLowerCase();
+                return data.map(c => ({ ...c, items: c.items.filter(i => i.name.toLowerCase().includes(term)) })).filter(c => c.items.length > 0);
+            }, [data, search]);
+
+            if (!auth) return <LoginScreen onLogin={() => setAuth(true)} />;
+
+            return (
+                <div className="pb-24 pt-4 px-4 max-w-xl mx-auto">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="font-black text-2xl text-white italic">SCANNER <span className="text-indigo-500">PRO</span></h1>
+                        <div className="flex items-center gap-2">
+                            <button onClick={handleBackup} className="bg-gray-800 text-emerald-400 p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.Save /></button>
+                            <button onClick={() => setShowCheck(true)} className="bg-gray-800 text-white p-2 rounded-lg border border-gray-700 active:scale-95 transition-all"><Icons.List /></button>
+                            <div className="text-xs font-mono text-emerald-400 border border-emerald-900 bg-emerald-900/20 px-2 py-1 rounded">{status}</div>
+                        </div>
+                    </div>
+
+                    <button onClick={() => setShowLoc(true)} className="w-full bg-gray-900 border border-gray-700 p-4 rounded-2xl flex items-center justify-between mb-4 group active:scale-95 transition-all">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-indigo-600 p-2 rounded-lg text-white"><Icons.MapPin /></div>
+                            <div className="text-left">
+                                <div className="text-xs text-gray-500 uppercase font-bold tracking-wider">Current Zone</div>
+                                <div className="text-white font-bold text-lg leading-none">{ZONES_CONFIG[loc] ? (ZONES_CONFIG[loc].find(z=>z.id===subZone)?.label || 'Select Zone') : 'Main Area'}</div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="number" 
-                                    min="1"
-                                    placeholder="1" 
-                                    className="w-14 bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-2 text-center text-white font-mono text-sm focus:border-indigo-500 outline-none"
-                                    value={recipeQuantities[recipe.name] || ""}
-                                    onChange={(e) => handleRecipeQtyChange(recipe.name, e.target.value)}
-                                />
-                                <button 
-                                    onClick={(e) => { 
-                                        handleAddRecipe(recipe); 
-                                        const btn = e.currentTarget; 
-                                        btn.innerHTML = "✔"; 
-                                        btn.classList.add("bg-emerald-600", "text-white"); 
-                                        setTimeout(() => { 
-                                            btn.innerHTML = "Add"; 
-                                            btn.classList.remove("bg-emerald-600", "text-white"); 
-                                        }, 1000); 
-                                    }} 
-                                    className="px-4 py-2 bg-[#3A4048] text-[#f0f6fc] hover:bg-indigo-600 hover:text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-lg whitespace-nowrap"
-                                >
-                                    Add
-                                </button>
+                        </div>
+                        <Icons.ChevronDown className="text-gray-500"/>
+                    </button>
+
+                    <div className="relative mb-6">
+                        <Icons.Search className="absolute left-4 top-3.5 text-gray-500" />
+                        <input type="text" placeholder="Search item manually..." className="w-full bg-black border border-gray-800 rounded-xl py-3 pl-12 pr-4 text-white focus:border-indigo-500 outline-none" value={search} onChange={e=>setSearch(e.target.value)} />
+                    </div>
+
+                    {filteredData.map(cat => (
+                        <div key={cat.category} className="mb-4">
+                            <h3 className="text-indigo-400 font-bold text-xs uppercase mb-2 ml-2">{cat.category}</h3>
+                            <div className="bg-gray-900/50 rounded-2xl overflow-hidden border border-gray-800/50">
+                                {cat.items.map(item => {
+                                    const qty = parseFloat(item[subZone || loc]) || 0;
+                                    return (
+                                        <div key={item.id} onClick={() => setEditItem(item)} className="p-4 border-b border-gray-800 last:border-0 flex justify-between items-center active:bg-gray-800 transition-colors cursor-pointer">
+                                            <div className="font-medium text-white">{item.name}</div>
+                                            {qty > 0 && <div className="bg-indigo-600 text-white font-mono font-bold px-3 py-1 rounded-lg">{qty}</div>}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
-                    {list.length === 0 && <div className="text-center text-[#f0f6fc]/40 mt-10">No recipes found.</div>}
-                </div>
-            );
 
-            return (
-                <div className="fixed inset-0 bg-black/90 flex flex-col z-[85] backdrop-blur-sm animate-in overflow-hidden">
-                    <div className="p-4 border-b border-[#3A4048] flex justify-between items-center bg-[#1D1F23]">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.DollarSign className="text-emerald-400" /> Manual POS Entry</h2>
-                        <button onClick={onClose} className="p-2 bg-[#3A4048] text-[#f0f6fc]/80 rounded-lg hover:bg-[#4A5462]">Close</button>
-                    </div>
-                    <div className="p-4 border-b border-[#3A4048] bg-[#121212] space-y-3">
-                        <div className="flex p-1 bg-[#0A0A0A] rounded-xl border border-[#3A4048]">
-                            <button onClick={() => setActiveTab('products')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'products' ? 'bg-[#3A4048] text-white shadow' : 'text-[#f0f6fc]/40 hover:text-white'}`}>PRODUCTS</button>
-                            <button onClick={() => setActiveTab('cocktails')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'cocktails' ? 'bg-indigo-600 text-white shadow' : 'text-[#f0f6fc]/40 hover:text-white'}`}><Icons.Cocktail size={14} /> COCKTAILS</button>
-                            <button onClick={() => setActiveTab('pitchers')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'pitchers' ? 'bg-amber-600 text-white shadow' : 'text-[#f0f6fc]/40 hover:text-white'}`}><Icons.Pitcher size={14} /> PITCHERS</button>
-                        </div>
-                        <div className="relative"><Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f0f6fc]/50" size={18} /><input type="text" placeholder={`Search ${activeTab.slice(0, -1)}...`} className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all placeholder:text-[#f0f6fc]/40 text-sm font-medium" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />{searchTerm && <button onClick={() => setSearchTerm("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#f0f6fc]/50 hover:text-white">✕</button>}</div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-8">
-                        {activeTab === 'products' ? (
-                            filteredData.length === 0 ? <div className="text-center text-[#f0f6fc]/40 mt-10">No products found.</div> : filteredData.map(cat => (
-                                <div key={cat.category} className="space-y-3">
-                                    <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur py-2 z-10 border-b border-[#3A4048]"><h3 className="text-indigo-400 font-bold text-sm uppercase tracking-wider">{cat.category}</h3></div>
-                                    <div className="grid gap-2">{cat.items.map(item => {
-                                            const isUnit = cat.category.includes("Beers") || cat.category.includes("Seltzer") || cat.category.includes("Non");
-                                            return (
-                                                <div key={item.id} className="bg-[#1D1F23] p-3 rounded-xl border border-[#3A4048] flex flex-col gap-2 shadow-sm">
-                                                    <div className="flex justify-between items-center"><span className="font-bold text-white text-sm">{item.name}</span><span className="text-emerald-400 font-mono font-bold text-xs bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">Total: {item.sales || 0}</span></div>
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        <div className="relative"><label className="text-[9px] text-[#f0f6fc]/40 uppercase font-bold block mb-1">{isUnit ? 'Units' : 'Btls'}</label><input type="number" placeholder="0" className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-1.5 text-center text-white font-mono text-sm focus:border-indigo-500 outline-none" value={item.sold_bottles || ""} onChange={(e) => handleLocalSalesChange(item, 'bottles', e.target.value, cat.category)}/></div>
-                                                        <div className="relative"><label className="text-[9px] text-[#f0f6fc]/40 uppercase font-bold block mb-1">{isUnit ? 'Bkt(x6)' : 'Shots'}</label><input type="number" placeholder="0" className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-1.5 text-center text-white font-mono text-sm focus:border-indigo-500 outline-none" value={item.sold_shots || ""} onChange={(e) => handleLocalSalesChange(item, 'shots', e.target.value, cat.category)}/></div>
-                                                        <div className="relative"><label className="text-[9px] text-[#f0f6fc]/40 uppercase font-bold block mb-1">Comps</label><input type="number" placeholder="0" className="w-full bg-[#0A0A0A] border border-[#3A4048] rounded-lg px-2 py-1.5 text-center text-white font-mono text-sm focus:border-emerald-500 outline-none text-emerald-100" value={item.sold_comps || ""} onChange={(e) => handleLocalSalesChange(item, 'comps', e.target.value, cat.category)}/></div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}</div>
-                                </div>
-                            ))
-                        ) : activeTab === 'cocktails' ? (
-                            renderRecipeList(filteredCocktails)
-                        ) : (
-                            renderRecipeList(filteredPitchers)
-                        )}
-                    </div>
-                </div>
-            );
-        };
+                    <button onClick={() => setScanning(true)} className="fixed bottom-6 right-6 h-16 w-16 bg-indigo-500 hover:bg-indigo-400 text-white rounded-full shadow-2xl flex items-center justify-center border-2 border-white z-30 active:scale-90 transition-transform">
+                        <Icons.Scan />
+                    </button>
 
-        const Header = ({ onNewPeriod, onClearAll, onDownload, onDownloadPDF, onShowCharts, onBackup, onRestore, isCloud, onShopping, onShowPurchasesLog, onShowSalesEntry, logoSrc, onLogoUpload, onShowCount, isSaving, onToggleSearch, showSearch, onToggleZoneSelector, showZoneSelector, onFilterCategory, currentFilter }) => {
-            const [showMenu, setShowMenu] = useState(false);
-            const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
-            return (
-                <header className="bg-[#1D1F23]/90 border-b border-[#3A4048] text-white p-4 shadow-xl backdrop-blur-sm sticky top-0 z-50">
-                    <div className="max-w-6xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="bg-[#3A4048] rounded-full border border-[#4A5462] shadow-lg overflow-hidden h-21 w-21 flex-shrink-0 cursor-pointer hover:border-indigo-500 transition-all relative group" onClick={() => document.getElementById('logo-upload').click()}>
-                                <img src={logoSrc} alt="Logo" className="h-full w-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/100x100/4f46e5/ffffff?text=LOGO"; }} />
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full"><Icons.Upload size={16} className="text-white" /></div>
-                            </div>
-                            <input type="file" id="logo-upload" accept="image/*" className="hidden" onChange={onLogoUpload} />
-                            <div><h1 className="font-bold text-lg leading-tight text-white flex items-baseline gap-2">Master Bar Control <span className="text-xs text-[#f0f6fc]/40 font-mono">v{APP_VERSION}</span></h1><div className="flex items-center gap-2 text-xs mt-1 flex-wrap"><span className={`px-2 py-0.5 rounded-full border ${isCloud ? 'bg-indigo-900/50 border-indigo-500 text-indigo-200' : 'bg-[#3A4048] border-[#4A5462] text-[#f0f6fc]/50'} flex items-center gap-1 transition-colors`}>{isCloud ? <Icons.Cloud size={10} /> : <Icons.HardDrive size={10} />}{isCloud ? 'Cloud' : 'Local'}</span><span className="text-[#f0f6fc]/50 font-bold uppercase tracking-wider text-[10px] border-l border-[#3A4048] pl-2 ml-1">{dateStr}</span>{isSaving && <span className="ml-2 flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-900/50 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold uppercase animate-in"><div className="w-2 h-2 rounded-full bg-emerald-400 saving-pulse"></div> Saving...</span>}</div></div>
-                        </div>
-                        <div className="flex flex-col lg:items-end gap-2 w-full lg:w-auto relative">
-                            <div className="flex flex-wrap justify-center lg:justify-end gap-2 w-full lg:w-auto items-center">
-                                <button onClick={onToggleZoneSelector} className={`flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-xl font-bold border border-orange-400 text-sm shadow-lg shadow-orange-900/30 transition-all active:scale-95 ${showZoneSelector ? 'ring-2 ring-orange-500/50 scale-105' : ''}`}><Icons.Scan size={20} className="text-white" /><span>SCAN</span></button>
-                                <button onClick={onToggleSearch} className={`flex items-center justify-center bg-violet-600 hover:bg-violet-500 text-white w-11 h-11 rounded-xl font-bold shadow-lg shadow-violet-900/30 active:scale-95 border border-violet-400 transition-all ${showSearch ? 'ring-2 ring-violet-500/50 scale-105' : ''}`}><Icons.Search size={22} /></button>
-                                <button onClick={onShowCount} className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-green-900/30 active:scale-95 text-sm border border-green-400"><Icons.List size={20} /> COUNT</button>
-                                <button onClick={() => setShowMenu(!showMenu)} className={`flex items-center justify-center w-11 h-11 rounded-xl font-bold shadow-lg active:scale-95 border transition-all ${showMenu ? 'bg-slate-600 text-white ring-2 ring-slate-500/50 scale-105' : 'bg-slate-700 hover:bg-slate-600 text-white border-slate-500 shadow-slate-900/30'}`}><Icons.Settings size={22} /></button>
-                            </div>
-                            {showMenu && (<><div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div><div className="absolute top-full right-0 mt-4 w-72 bg-[#1D1F23] border border-[#3A4048] rounded-3xl shadow-2xl z-50 p-3 flex flex-col gap-2 animate-in origin-top-right"><div className="text-[10px] text-[#f0f6fc]/40 uppercase font-bold tracking-widest px-3 py-2 border-b border-[#3A4048]/50 mb-1">Menu & Tools</div><div className="flex gap-2 p-1"><button onClick={() => { onBackup(); setShowMenu(false); }} className="flex-1 flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-[#3A4048] text-[#f0f6fc]/80 p-3 rounded-xl text-xs font-bold border border-[#3A4048] transition-all"><Icons.Save size={14} /> Backup</button><button onClick={() => { onRestore(); setShowMenu(false); }} className="flex-1 flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-[#3A4048] text-[#f0f6fc]/80 p-3 rounded-xl text-xs font-bold border border-[#3A4048] transition-all"><Icons.Upload size={14} /> Load</button></div><button onClick={() => { onShowPurchasesLog(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.Package size={20} className="text-emerald-400" /> View Purchases Log</button><button onClick={() => { onShowSalesEntry(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.DollarSign size={20} className="text-emerald-400" /> Manual POS Entry</button><button onClick={() => { onShopping(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.ShoppingCart size={20} className="text-amber-400" /> Shopping List</button><button onClick={() => { onShowCharts(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.BarChart size={20} className="text-indigo-400" /> Performance Analytics</button><button onClick={() => { onDownloadPDF(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.FileText size={20} className="text-rose-400" /> Download PDF Report</button><button onClick={() => { onNewPeriod(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-[#3A4048] text-[#f0f6fc] transition-all text-base font-medium text-left"><Icons.ArrowRight size={20} className="text-emerald-400" /> Start Next Period</button><div className="h-px bg-[#3A4048] my-1 mx-2"></div><button onClick={() => { onClearAll(); setShowMenu(false); }} className="flex items-center gap-3 p-4 rounded-2xl hover:bg-red-900/20 text-red-400 transition-all text-base font-bold text-left group"><Icons.Trash size={20} className="group-hover:scale-110 transition-transform" /> Reset Inventory</button></div></>)}
-                        </div>
-                    </div>
-                </header>
-            );
-        };
-
-        const createItem = (id, name) => ({ id, name, bar1: "", bar2: "", bodega: "", barroluco: "", start_bar1: "", start_bar2: "", start_bodega: "", start_barroluco: "", purchases: "", sales: "", sold_bottles: "", sold_shots: "", sold_comps: "", barcode: "", barcode_case: "", bar1_cooler: "", bar1_small_cooler_1: "", bar1_small_cooler_2: "", bar1_reaching: "", bar1_shelf_full: "", bar1_shelf_open: "", bar1_well_1: "", bar1_well_2: "", bar2_cooler: "", bar2_small_cooler: "", bodega_closet: "", bodega_shelves: "" });
-
-        const INITIAL_DATA = [
-            { category: "Premium Liquor (Tequila/Whisky)", items: [ createItem("liq-1", "Casamigos Blanco"), createItem("liq-2", "Casamigos Reposado"), createItem("liq-23", "Espolon Blanco"), createItem("liq-24", "Espolon Reposado"), createItem("liq-25", "Patron Cristalino"), createItem("liq-3", "Don Julio Blanco"), createItem("liq-4", "Don Julio Reposado"), createItem("liq-6", "Patron Silver"), createItem("liq-7", "Patron Reposado"), createItem("liq-8", "Clase Azul"), createItem("liq-9", "Grand Old Parr 12"), createItem("liq-11", "Crown Royal Regal"), createItem("liq-10", "Apple Crown Royal"), createItem("liq-26", "Hennessy VS"), createItem("liq-12", "Buchanans 12"), createItem("liq-13", "Johnnie Walker Black"), createItem("liq-14", "Capitan Morgan Spice"), createItem("liq-15", "Brugal Anejo"), createItem("liq-27", "Tito's Texas Vodka"), createItem("liq-16", "Grey Goose"), createItem("liq-17", "Jack Daniels Black"), createItem("liq-18", "WoodFord Reserve"), createItem("liq-19", "Fernet Branca"), createItem("liq-28", "Jagermeister"), createItem("liq-29", "Jameson"), createItem("liq-30", "Beefeater"), createItem("liq-32", "Wahaka Mezcal"), createItem("liq-31", "Malibu"), createItem("vin-4", "Moet Imperial Necta Rose"), createItem("liq-20", "Disaronno Amaretto"), createItem("vin-3", "Procecco Zonin"), createItem("liq-21", "Remy Martin"), createItem("liq-22", "Novo Fogo Silver Cachaca") ]},
-            { category: "Wells (House Liquor)", items: [ createItem("wel-1", "Bacardi Light"), createItem("wel-2", "Bacardi Lime"), createItem("wel-13", "Bacardi Limon"), createItem("wel-3", "Pirassununga Cachaça 51"), {...createItem("wel-4", "Barton Naturals Vodka"), barcode: "123456789012,210987654321"}, createItem("wel-15", "Barton Gin"), createItem("wel-5", "Peach Schnapps Boston"), createItem("wel-6", "Montezuma White"), createItem("wel-7", "Triple Sec Boston"), createItem("wel-8", "Long Island Tea Mix"), createItem("wel-9", "Curacao Blue"), createItem("wel-10", "Melon Boston"), createItem("wel-14", "Sour Apple"), createItem("wel-11", "Sour Apple HW"), createItem("wel-12", "Sour Cherry Boston") ]},
-            { category: "Seltzer & Energy", items: [ createItem("sel-1", "Red Bull Sugar Free"), createItem("sel-2", "Red Bull Regular"), createItem("sel-3", "Red Bull Watermelon"), createItem("sel-4", "Red Bull Juneberry"), {...createItem("sel-5", "High Noon Variety Pack"), barcode: "987654321098,876543210987"} ]},
-            { category: "Beers", items: [ createItem("cer-1", "Pacifico"), createItem("cer-2", "Michelob Ultra"), createItem("cer-3", "Modelo Especial"), createItem("cer-5", "Corona"), createItem("cer-4", "Heineken") ]},
-            { category: "Wines", items: [ createItem("vin-1", "Sangria"), createItem("vin-2", "Chardonnay El Enemigo"), createItem("vin-5", "Cafayate Malbec") ]},
-            { category: "Non Alcoholic", items: [ createItem("na-1", "Coca Cola"), createItem("na-2", "Diet Coke"), createItem("na-3", "Sprite"), createItem("na-4", "Ginger Ale"), createItem("na-5", "Water Bottle") ]}
-        ];
-
-        function App() {
-            const [isAuthenticated, setIsAuthenticated] = useState(false);
-            const [data, setData] = useState(INITIAL_DATA);
-            const [loading, setLoading] = useState(true);
-            const [isCloud, setIsCloud] = useState(false);
-            const [user, setUser] = useState(null);
-            const [logo, setLogo] = useState(() => SafeStorage.getItem('BAR_LOGO') || "https://placehold.co/100x100/4f46e5/ffffff?text=BAR");
-            
-            const fileInputRef = useRef(null);
-            const [scanningForItem, setScanningForItem] = useState(null); 
-            const [scanAttempt, setScanAttempt] = useState(0); 
-            const [isResetting, setIsResetting] = useState(false);
-            const LOCAL_STORAGE_KEY = 'bar-inventory-final-v26'; 
-
-            const [showAddProduct, setShowAddProduct] = useState(false);
-            const [currentLocation, setCurrentLocation] = useState('bar1'); 
-            const [showCountReview, setShowCountReview] = useState(false);
-            const [showSearch, setShowSearch] = useState(false); 
-            const [showZoneSelector, setShowZoneSelector] = useState(false); 
-            const [isSaving, setIsSaving] = useState(false);
-            const saveTimeoutRef = useRef(null);
-            const [pendingImportData, setPendingImportData] = useState(null);
-            const [showImportModal, setShowImportModal] = useState(false);
-            const [quickScanItemId, setQuickScanItemId] = useState(null);
-            const [notification, setNotification] = useState(null);
-            const [modalConfig, setModalConfig] = useState(null);
-            const [showCharts, setShowCharts] = useState(false);
-            const [showShopping, setShowShopping] = useState(false);
-            const [showPurchasesLog, setShowPurchasesLog] = useState(false);
-            const [showSalesEntry, setShowSalesEntry] = useState(false);
-            const [shoppingItems, setShoppingItems] = useState([]);
-            const [isScanning, setIsScanning] = useState(false);
-            const [pendingBarcode, setPendingBarcode] = useState(null);
-            const [openCategories, setOpenCategories] = useState({});
-            const [searchTerm, setSearchTerm] = useState("");
-            
-            // --- NEW: Category Filter & SubZone Memory ---
-            const [categoryFilter, setCategoryFilter] = useState(null);
-            const [lastSubZone, setLastSubZone] = useState(null);
-
-            useEffect(() => {
-                const initApp = async () => {
-                    const fb = window.fb;
-                    const configToUse = ENV_FIREBASE_CONFIG || (FIREBASE_CONFIG.apiKey ? FIREBASE_CONFIG : null);
-                    if (configToUse && fb) {
-                        try {
-                            const app = fb.initializeApp(configToUse);
-                            const auth = fb.getAuth(app);
-                            const db = fb.getFirestore(app);
-                            if (ENV_AUTH_TOKEN) await fb.signInWithCustomToken(auth, ENV_AUTH_TOKEN);
-                            else await fb.signInAnonymously(auth);
-                            fb.onAuthStateChanged(auth, (u) => {
-                                setUser(u);
-                                if (u) {
-                                    setIsCloud(true);
-                                    const collectionPath = ENV_APP_ID !== 'default-app-id' ? `artifacts/${ENV_APP_ID}/public/data/inventory` : 'inventory';
-                                    const docRef = fb.doc(db, collectionPath, 'master');
-                                    fb.onSnapshot(docRef, (docSnap) => {
-                                        if (docSnap.exists()) { if (!isSaving) setData(docSnap.data().items); } 
-                                        else { fb.setDoc(docRef, { items: INITIAL_DATA }); setData(INITIAL_DATA); }
-                                        setLoading(false);
-                                    }, (err) => { console.warn(err); setIsCloud(false); loadLocal(); });
-                                } else { loadLocal(); }
-                            });
-                        } catch (e) { console.warn(e); setIsCloud(false); loadLocal(); }
-                    } else { setIsCloud(false); loadLocal(); }
-                };
-                const loadLocal = () => {
-                    const saved = SafeStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (saved) setData(JSON.parse(saved)); else setData(INITIAL_DATA);
-                    setLoading(false);
-                };
-                initApp();
-            }, []);
-
-            // PDF Logic
-            const generatePDF = async () => {
-                showNotification("Generating PDF Report...");
-                let items = []; let totalConsumed = 0; let totalSold = 0; let totalDiff = 0; let catMap = {}; let catConsumed = {}; let catSold = {};
-                
-                // --- CATEGORY SUMMARY DATA ---
-                const categorySummary = {}; 
-
-                data.forEach(cat => { 
-                    let cSales = 0; 
-                    let cConsumed = 0;
-                    
-                    if (!categorySummary[cat.category]) categorySummary[cat.category] = { used: 0, sold: 0, variance: 0 };
-
-                    cat.items.forEach(item => {
-                        const totalPhys = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0);
-                        const totalStart = (parseFloat(item.start_bar1)||0) + (parseFloat(item.start_bar2)||0) + (parseFloat(item.start_bodega)||0) + (parseFloat(item.start_barroluco)||0);
-                        const purchases = parseFloat(item.purchases)||0; const sales = parseFloat(item.sales)||0;
-                        const systemConsumption = totalStart + purchases - totalPhys;
-                        const diff = sales - systemConsumption;
-                        
-                        if (systemConsumption > 0 || sales > 0) { 
-                            items.push({ ...item, category: cat.category, totalStart, totalPhys, purchases, systemConsumption, sales, diff }); 
-                            totalConsumed += systemConsumption; 
-                            totalSold += sales; 
-                            totalDiff += diff; 
-                            cSales += sales; 
-                            cConsumed += systemConsumption;
-
-                            categorySummary[cat.category].used += systemConsumption;
-                            categorySummary[cat.category].sold += sales;
-                            categorySummary[cat.category].variance += diff;
-                        }
-                    }); 
-                    if (cSales > 0) catMap[cat.category] = cSales; 
-                    if (cConsumed > 0 || cSales > 0) { 
-                        catConsumed[cat.category] = cConsumed; 
-                        catSold[cat.category] = cSales; 
-                    } 
-                });
-                
-                items.sort((a, b) => a.diff - b.diff); 
-                const topLosses = items.filter(i => i.diff < 0).slice(0, 5);
-
-                // --- GENERATE CHARTS IMAGES ---
-                const createChartImage = (config) => {
-                    return new Promise((resolve) => {
-                        const canvas = document.getElementById('pdf-chart-canvas'); const ctx = canvas.getContext('2d');
-                        ctx.save(); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
-                        const pdfConfig = { ...config, options: { ...config.options, animation: false, responsive: false, devicePixelRatio: 2, color: '#000000', plugins: { ...config.options?.plugins, legend: { ...config.options?.plugins?.legend, labels: { color: '#000000', font: { size: 14 } } }, title: { ...config.options?.plugins?.title, color: '#000000', font: { size: 18, weight: 'bold' } }, datalabels: { color: '#000000' } }, scales: config.type !== 'pie' ? { x: { ticks: { color: '#000000' }, grid: { color: '#cccccc' } }, y: { ticks: { color: '#000000' }, grid: { color: '#cccccc' } } } : {} } };
-                        if (window.pdfChart) window.pdfChart.destroy(); window.pdfChart = new Chart(ctx, pdfConfig);
-                        setTimeout(() => { try { ctx.globalCompositeOperation = 'destination-over'; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); const img = canvas.toDataURL('image/jpeg', 1.0); resolve(img); } catch (e) { resolve(null); } }, 500);
-                    });
-                };
-                
-                const chartImg1 = await createChartImage({ type: 'pie', data: { labels: Object.keys(catMap).map(k => k.split(' ')[0]), datasets: [{ data: Object.values(catMap), backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'] }] }, options: { plugins: { title: { display: true, text: 'Sales Share' }, legend: { position: 'bottom' } } } });
-                const chartImg2 = await createChartImage({ type: 'bar', data: { labels: topLosses.map(i => i.name), datasets: [{ label: 'Loss (Units)', data: topLosses.map(i => i.diff), backgroundColor: '#ef4444' }] }, options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Top 5 Product Losses' }, legend: { display: false } } } });
-
-                // --- PDF GENERATION ---
-                const { jsPDF } = window.jspdf; 
-                const doc = new jsPDF(); 
-                const dateText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                // Calculate Score (Simple logic: 100 - (abs(diff)/used)*100)
-                let score = 100;
-                if(totalConsumed > 0) {
-                     score = Math.max(0, 100 - (Math.abs(totalDiff) / totalConsumed * 100));
-                }
-                const grade = score >= 95 ? "A" : score >= 85 ? "B" : "C";
-                const scoreColor = score >= 95 ? [34, 197, 94] : score >= 85 ? [234, 179, 8] : [239, 68, 68];
-
-                // === PAGE 1: PERFORMANCE SUMMARY ===
-                // Header
-                doc.setFontSize(22); doc.setTextColor(40); doc.setFont("helvetica", "bold");
-                doc.text("Palmas Tropical Escape", 15, 20);
-                doc.setFontSize(10); doc.setTextColor(100); doc.setFont("helvetica", "normal");
-                doc.text(`Report Date: ${dateText}`, 15, 26);
-                
-                doc.line(15, 30, 195, 30); // Line
-
-                // Dashboard Boxes
-                // Score Box
-                doc.setFillColor(245, 247, 250); doc.roundedRect(15, 35, 40, 30, 2, 2, 'F');
-                doc.setFontSize(9); doc.setTextColor(100); doc.text("RATING", 35, 42, { align: 'center' });
-                doc.setFontSize(24); doc.setTextColor(...scoreColor); doc.setFont("helvetica", "bold");
-                doc.text(grade, 35, 53, { align: 'center' });
-                doc.setFontSize(10); doc.text(`${score.toFixed(1)}%`, 35, 60, { align: 'center' });
-
-                // Total Consumed
-                doc.setFillColor(245, 247, 250); doc.roundedRect(60, 35, 40, 30, 2, 2, 'F');
-                doc.setFontSize(9); doc.setTextColor(100); doc.setFont("helvetica", "normal"); doc.text("TOTAL CONSUMED", 80, 42, { align: 'center' });
-                doc.setFontSize(16); doc.setTextColor(40); doc.setFont("helvetica", "bold");
-                doc.text(totalConsumed.toFixed(1), 80, 52, { align: 'center' });
-                doc.setFontSize(8); doc.text("Units Used", 80, 58, { align: 'center' });
-
-                // Total Sold
-                doc.setFillColor(245, 247, 250); doc.roundedRect(105, 35, 40, 30, 2, 2, 'F');
-                doc.setFontSize(9); doc.setTextColor(100); doc.setFont("helvetica", "normal"); doc.text("TOTAL SOLD", 125, 42, { align: 'center' });
-                doc.setFontSize(16); doc.setTextColor(79, 70, 229); doc.setFont("helvetica", "bold");
-                doc.text(totalSold.toFixed(1), 125, 52, { align: 'center' });
-                doc.setFontSize(8); doc.setTextColor(40); doc.text("Units Sold (POS)", 125, 58, { align: 'center' });
-
-                // Variance
-                doc.setFillColor(totalDiff < 0 ? 254 : 240, totalDiff < 0 ? 242 : 253, totalDiff < 0 ? 242 : 244); 
-                doc.roundedRect(150, 35, 45, 30, 2, 2, 'F');
-                doc.setFontSize(9); doc.setTextColor(100); doc.setFont("helvetica", "normal"); doc.text("VARIANCE", 172.5, 42, { align: 'center' });
-                doc.setFontSize(16); doc.setTextColor(totalDiff < 0 ? 220 : 34, totalDiff < 0 ? 38 : 139, 38); doc.setFont("helvetica", "bold");
-                doc.text(`${totalDiff > 0 ? '+' : ''}${totalDiff.toFixed(1)}`, 172.5, 52, { align: 'center' });
-                doc.setFontSize(8); doc.text(totalDiff < 0 ? "Loss" : "Gain", 172.5, 58, { align: 'center' });
-
-                // Category Summary Table
-                const catSummaryData = Object.entries(categorySummary).map(([cat, vals]) => [
-                    cat, 
-                    vals.used.toFixed(1), 
-                    vals.sold.toFixed(1), 
-                    vals.variance.toFixed(1),
-                    `${vals.used > 0 ? ((vals.variance / vals.used) * 100).toFixed(1) : '0.0'}%`
-                ]);
-
-                doc.autoTable({
-                    startY: 75,
-                    head: [['Category', 'Used', 'Sold', 'Variance', '% Var']],
-                    body: catSummaryData,
-                    theme: 'grid',
-                    headStyles: { fillColor: [55, 65, 81], textColor: 255, fontStyle: 'bold' },
-                    styles: { fontSize: 9, cellPadding: 3 },
-                    columnStyles: { 
-                        3: { fontStyle: 'bold', textColor: [220, 38, 38] }, // Variance column red by default, can adjust in didParse
-                        4: { halign: 'right' }
-                    },
-                    didParseCell: function(data) {
-                        if (data.column.index === 3) {
-                            const val = parseFloat(data.cell.raw);
-                            data.cell.styles.textColor = val < 0 ? [220, 38, 38] : [22, 163, 74];
-                        }
-                    }
-                });
-
-                // Charts position
-                let yPos = doc.lastAutoTable.finalY + 10;
-                if (chartImg1) { 
-                    doc.addImage(chartImg1, 'JPEG', 15, yPos, 80, 60); 
-                } 
-                if (chartImg2) { 
-                    doc.addImage(chartImg2, 'JPEG', 105, yPos, 90, 60); 
-                }
-
-                // === PAGE 2: LOSS LEADERS ===
-                doc.addPage();
-                doc.setFontSize(16); doc.setTextColor(40); doc.text("Top Loss Leaders", 15, 20);
-                
-                doc.autoTable({
-                    startY: 30,
-                    head: [['Item Name', 'Category', 'Missing Units']],
-                    body: topLosses.map(i => [i.name, i.category, i.diff.toFixed(2)]),
-                    theme: 'striped',
-                    headStyles: { fillColor: [220, 38, 38] }, // Red header for losses
-                    styles: { fontSize: 10 }
-                });
-
-                // === PAGE 3: FULL DETAIL REPORT ===
-                doc.addPage();
-                doc.setFontSize(16); doc.setTextColor(40); doc.text("Detailed Inventory Report", 15, 20);
-                
-                doc.autoTable({
-                    startY: 30,
-                    head: [['Product', 'Cat', 'Start', 'Buy', 'End', 'Used', 'Sold', 'Diff']],
-                    body: items.map(i => [ 
-                        i.name, 
-                        i.category.split(' ')[0], // Short category
-                        i.totalStart, 
-                        i.purchases || 0, 
-                        i.totalPhys, 
-                        i.systemConsumption.toFixed(2), 
-                        i.sales.toFixed(2), 
-                        i.diff.toFixed(2) 
-                    ]),
-                    styles: { fontSize: 8, cellPadding: 2, textColor: [0,0,0] },
-                    headStyles: { fillColor: [30, 30, 30], textColor: 255 },
-                    didParseCell: function(data) {
-                        if (data.section === 'body' && data.column.index === 7) {
-                            const val = parseFloat(data.cell.raw);
-                            if (val < -0.1) { 
-                                data.cell.styles.fillColor = [255, 230, 230]; 
-                                data.cell.styles.textColor = [180, 0, 0]; 
-                                data.cell.styles.fontStyle = 'bold'; 
-                            } else if (val > 0.1) { 
-                                data.cell.styles.fillColor = [230, 255, 230]; 
-                                data.cell.styles.textColor = [0, 100, 0]; 
-                                data.cell.styles.fontStyle = 'bold'; 
-                            }
-                        }
-                    }
-                });
-
-                doc.save(`Executive_Report_${dateText.replace(/ /g, '_')}.pdf`);
-                showNotification("PDF Exported Successfully!");
-            };
-
-            const downloadReport = () => {
-                const dateObj = new Date(); const safeDate = dateObj.toISOString().split('T')[0]; let items = []; let totalConsumed = 0; let totalSold = 0; let totalDiff = 0;
-                data.forEach(cat => { cat.items.forEach(item => { const totalPhys = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0); const totalStart = (parseFloat(item.start_bar1)||0) + (parseFloat(item.start_bar2)||0) + (parseFloat(item.start_bodega)||0) + (parseFloat(item.start_barroluco)||0); const purchases = parseFloat(item.purchases)||0; const sales = parseFloat(item.sales)||0; const systemConsumption = totalStart + purchases - totalPhys; const diff = sales - systemConsumption; if (systemConsumption > 0 || sales > 0) { items.push({ ...item, category: cat.category, totalStart, totalPhys, purchases, systemConsumption, sales, diff }); totalConsumed += systemConsumption; totalSold += sales; totalDiff += diff; } })});
-                let csv = `EXECUTIVE REPORT\nDate: ${safeDate}\n\nSUMMARY\nTotal Consumed,${totalConsumed.toFixed(2)}\nTotal Sold,${totalSold.toFixed(2)}\nNet Diff,${totalDiff.toFixed(2)}\n\nDETAILS\nPRODUCT,CAT,START,BUY,END,USED,SOLD,DIFF\n`; items.forEach(i => { csv += `"${i.name}","${i.category}",${i.totalStart},${i.purchases},${i.totalPhys},${i.systemConsumption},${i.sales},${i.diff}\n` });
-                const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `Report_${safeDate}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            };
-
-            const updateItem = (itemId, fieldOrObj, value) => { const timestamp = Date.now(); const newData = data.map(cat => ({ ...cat, items: cat.items.map(item => { if (item.id === itemId) { if (typeof fieldOrObj === 'object' && fieldOrObj !== null) return { ...item, ...fieldOrObj, lastUpdated: timestamp }; return { ...item, [fieldOrObj]: value, lastUpdated: timestamp }; } return item; }) })); saveData(newData); };
-            
-            const batchUpdateItems = (updates) => {
-                const timestamp = Date.now();
-                const newData = data.map(cat => ({
-                    ...cat,
-                    items: cat.items.map(item => {
-                        const update = updates.find(u => u.id === item.id);
-                        if (update) return { ...item, ...update.changes, lastUpdated: timestamp };
-                        return item;
-                    })
-                }));
-                saveData(newData);
-            };
-
-            const saveData = (newData) => {
-                setData(newData); const fb = window.fb;
-                if (isCloud && user && fb) { setIsSaving(true); if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); saveTimeoutRef.current = setTimeout(() => { try { const db = fb.getFirestore(); const collectionPath = ENV_APP_ID !== 'default-app-id' ? `artifacts/${ENV_APP_ID}/public/data/inventory` : 'inventory'; fb.setDoc(fb.doc(db, collectionPath, 'master'), { items: newData }).then(() => setIsSaving(false)).catch(() => setIsSaving(false)); } catch(e) { console.error(e); setIsSaving(false); } }, 2000); } else { SafeStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData)); }
-            };
-
-            const showNotification = (msg) => { setNotification(msg); setTimeout(() => setNotification(null), 3000); };
-            const handleAddNewProduct = (name, category) => { const newId = `custom-${Date.now()}`; const newItem = createItem(newId, name); const newData = data.map(cat => { if (cat.category === category) return { ...cat, items: [...cat.items, newItem] }; return cat; }); saveData(newData); showNotification(`Added: ${name}`); };
-            const handleLogoChange = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { const base64 = ev.target.result; setLogo(base64); SafeStorage.setItem('BAR_LOGO', base64); showNotification("Logo Updated!"); }; reader.readAsDataURL(file); };
-            const handleRestoreFile = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { try { const d = JSON.parse(ev.target.result); if (Array.isArray(d) && d[0].category) { setPendingImportData(d); setShowImportModal(true); } else { showNotification("Invalid file."); } } catch(err) { showNotification("Error reading file."); } }; reader.readAsText(file); e.target.value = null; };
-            const handleReplaceData = () => { if (pendingImportData) { saveData(pendingImportData); showNotification("Data replaced!"); setShowImportModal(false); setPendingImportData(null); } };
-            const handleMergeData = () => { if (!pendingImportData) return; const newData = JSON.parse(JSON.stringify(data)); pendingImportData.forEach(incomingCat => { let targetCat = newData.find(c => c.category === incomingCat.category); if (!targetCat) { newData.push(incomingCat); return; } incomingCat.items.forEach(incomingItem => { let targetItem = targetCat.items.find(i => i.id === incomingItem.id); if (!targetItem) { targetCat.items.push(incomingItem); } else { const numericFields = ['bar1', 'bar2', 'bodega', 'barroluco', 'start_bar1', 'start_bar2', 'start_bodega', 'start_barroluco', 'purchases', 'sales', 'sold_bottles', 'sold_shots', 'sold_comps', 'bar1_cooler', 'bar1_small_cooler_1', 'bar1_small_cooler_2', 'bar1_reaching', 'bar1_shelf', 'bar1_well_1', 'bar1_well_2', 'bar2_cooler', 'bar2_small_cooler', 'bodega_closet', 'bodega_shelves']; numericFields.forEach(field => { const currentVal = parseFloat(targetItem[field]) || 0; const incomingVal = parseFloat(incomingItem[field]) || 0; if (incomingVal !== 0) { const sum = currentVal + incomingVal; targetItem[field] = sum !== 0 ? sum.toString() : ""; } }); if (!targetItem.barcode && incomingItem.barcode) targetItem.barcode = incomingItem.barcode; if (!targetItem.barcode_case && incomingItem.barcode_case) targetItem.barcode_case = incomingItem.barcode_case; } }); }); saveData(newData); showNotification("Merge successful!"); setShowImportModal(false); setPendingImportData(null); };
-            const handleBackup = () => { const blob = new Blob([JSON.stringify(data)], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `Bar_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`; document.body.appendChild(link); link.click(); document.body.removeChild(link); };
-            const checkBarcodeMatch = (decodedText, item) => { if (item.barcode && item.barcode.split(',').some(code => code.trim() === decodedText)) return true; if (item.barcode_case && item.barcode_case === decodedText) return true; return false; };
-            const handleScanSuccess = (decodedText, scannerInstance) => { if (scanningForItem) { playSound('success'); setIsScanning(false); const { id, type } = scanningForItem; const targetField = type === 'case' ? 'barcode_case' : 'barcode'; const newData = data.map(cat => ({ ...cat, items: cat.items.map(item => { if (item.id === id) { if (type === 'unit') { const existingCodes = item.barcode ? item.barcode.split(',').map(c => c.trim()) : []; if (!existingCodes.includes(decodedText)) return { ...item, barcode: existingCodes.length > 0 ? `${item.barcode},${decodedText}` : decodedText }; return item; } return { ...item, [targetField]: decodedText }; } return item; }) })); saveData(newData); showNotification(`Code linked!`); setScanningForItem(null); return; } let foundItem = null; for (const cat of data) { const match = cat.items.find(i => checkBarcodeMatch(decodedText, i)); if (match) { foundItem = match; break; } } if (foundItem) { playSound('success'); setIsScanning(false); setQuickScanItemId(foundItem.id); showNotification(`Opening: ${foundItem.name}`); updateItem(foundItem.id, {}, null); } else { playSound('error'); showNotification(`Code ${decodedText} not recognized`); setIsResetting(true); setTimeout(() => { setIsResetting(false); }, 500); } };
-            const requestItemScan = (itemId, type = 'unit') => { setScanningForItem({ id: itemId, type }); setIsScanning(true); };
-            const handleDeleteProduct = (item) => { setModalConfig({ title: "Delete Item?", message: `Permanently remove "${item.name}"?`, isDestructive: true, onConfirm: () => { const newData = data.map(cat => ({ ...cat, items: cat.items.filter(i => i.id !== item.id) })); saveData(newData); setModalConfig(null); showNotification(`Deleted: ${item.name}`); } }); };
-            const confirmNewPeriod = () => { setModalConfig({ title: "Start Next Period?", message: "Moves Physical to On Hand.\nClears Sales/Purchases.", isDestructive: false, onConfirm: () => { const newData = data.map(cat => ({ ...cat, items: cat.items.map(item => { const physBodega = parseFloat(item.bodega) || 0; return { ...item, start_bar1: item.bar1 !== "" ? item.bar1 : 0, start_bar2: item.bar2 !== "" ? item.bar2 : 0, start_bodega: physBodega, start_barroluco: item.barroluco !== "" ? item.barroluco : 0, bar1: "", bar2: "", bodega: "", barroluco: "", purchases: "", sales: "", sold_bottles: "", sold_shots: "", sold_comps: "", bar1_cooler: "", bar1_small_cooler_1: "", bar1_small_cooler_2: "", bar1_reaching: "", bar1_shelf: "", bar1_well_1: "", bar1_well_2: "", bar2_cooler: "", bar2_small_cooler: "", bodega_closet: "", bodega_shelves: "" }; }) })); saveData(newData); setModalConfig(null); showNotification("New Period Started!"); } }); };
-            const confirmClearAll = () => {
-                setModalConfig({
-                    title: "Reset Inventory Options",
-                    message: "What type of reset?",
-                    isDestructive: true,
-                    customActions: [
-                        {
-                            label: "Counts Only",
-                            class: "bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-500",
-                            onClick: () => {
-                                const newData = data.map(cat => ({
-                                    ...cat,
-                                    items: cat.items.map(item => ({
-                                        ...item,
-                                        // 1. Resetear Totales Principales y Starts
-                                        bar1: "", bar2: "", bodega: "", barroluco: "",
-                                        start_bar1: "", start_bar2: "", start_bodega: "", start_barroluco: "",
-                                        purchases: "", sales: "",
-                                        sold_bottles: "", sold_shots: "", sold_comps: "",
-
-                                        // 2. Resetear TODAS las Sub-Zonas (Esto limpia el Count Double Check)
-                                        // Bar 1 Zones
-                                        bar1_cooler: "",
-                                        bar1_small_cooler_1: "",
-                                        bar1_small_cooler_2: "",
-                                        bar1_reaching: "",
-                                        bar1_shelf_full: "", 
-                                        bar1_shelf_open: "", 
-                                        bar1_well_1: "",
-                                        bar1_well_2: "",
-
-                                        // Bar 2 Zones
-                                        bar2_cooler: "",
-                                        bar2_small_cooler: "",
-
-                                        // Bodega Zones
-                                        bodega_closet: "",
-                                        bodega_shelves: ""
-                                    }))
-                                }));
-                                saveData(newData);
-                                setModalConfig(null);
-                                showNotification("Counts & Sub-zones Reset.");
-                            }
-                        },
-                        {
-                            label: "Factory Reset",
-                            class: "bg-red-600 hover:bg-red-500 text-white border border-red-500",
-                            onClick: () => {
-                                saveData(INITIAL_DATA);
-                                setModalConfig(null);
-                                showNotification("Factory Reset Complete.");
-                            }
-                        }
-                    ]
-                });
-            };
-            const generateShoppingList = () => { const toBuy = []; data.forEach(cat => { cat.items.forEach(item => { const target = PAR_LEVELS[item.name]; if (target !== undefined) { const current = (parseFloat(item.bar1)||0) + (parseFloat(item.bar2)||0) + (parseFloat(item.bodega)||0) + (parseFloat(item.barroluco)||0); const needed = target - current; if (needed > 0) { let displayQuantity = needed; let details = null; const customRound = (val) => { const decimal = val - Math.floor(val); return decimal > 0.5 ? Math.ceil(val) : Math.floor(val); }; if (cat.category.includes("Beers") || item.name.includes("Red Bull")) { const cases = customRound(needed / 24); displayQuantity = `${cases} Cases`; details = `(${needed} units needed)`; } else { displayQuantity = customRound(needed); } toBuy.push({ name: item.name, current, target, needed: displayQuantity, details }); } } }); }); setShoppingItems(toBuy); setShowShopping(true); };
-            const getIcon = (n) => { if (n.includes("Premium")) return Icons.GlassWater; if (n.includes("Wells")) return Icons.Package; if (n.includes("Beers")) return Icons.Beer; if (n.includes("Wines")) return Icons.Wine; if (n.includes("Non Alcoholic")) return Icons.Leaf; return Icons.RefreshCw; };
-            const activeQuickItem = useMemo(() => { if (!quickScanItemId) return null; for (const cat of data) { const found = cat.items.find(i => i.id === quickScanItemId); if (found) return found; } return null; }, [data, quickScanItemId]);
-            const filteredData = useMemo(() => { 
-                let filtered = data;
-                if (categoryFilter) {
-                    filtered = data.filter(cat => cat.category === categoryFilter);
-                }
-                if (!searchTerm) return filtered; 
-                const normalize = (str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
-                const term = normalize(searchTerm); const tightTerm = term.replace(/\s+/g, ''); 
-                return filtered.map(cat => ({ ...cat, items: cat.items.filter(item => { const nameMatch = normalize(item.name).includes(term); const catMatch = normalize(cat.category).includes(term); const tightMatch = normalize(item.name).replace(/\s+/g, '').includes(tightTerm); return nameMatch || catMatch || tightMatch; }) })).filter(cat => cat.items.length > 0); 
-            }, [data, searchTerm, categoryFilter]);
-
-            if (loading) return <div className="flex items-center justify-center min-h-screen text-[#f0f6fc]/50">Loading...</div>;
-            if (!isAuthenticated) return <ErrorBoundary><LoginScreen onLogin={() => { setIsAuthenticated(true); playSound('success'); }} logoSrc={logo} onLogoUpload={handleLogoChange}/></ErrorBoundary>;
-
-            return (
-                <div className="min-h-screen bg-transparent font-sans pb-20">
-                    <div className="sticky top-0 left-0 right-0 z-50 shadow-xl bg-[#1D1F23]/90 backdrop-blur-md">
-                        <Header 
-                            onNewPeriod={confirmNewPeriod} 
-                            onClearAll={confirmClearAll} 
-                            onDownload={downloadReport} 
-                            onDownloadPDF={generatePDF} 
-                            onShowCharts={() => setShowCharts(true)} 
-                            onBackup={handleBackup} 
-                            onRestore={() => fileInputRef.current.click()} 
-                            isCloud={isCloud} 
-                            onShopping={generateShoppingList} 
-                            onShowPurchasesLog={() => setShowPurchasesLog(true)} 
-                            onShowSalesEntry={() => setShowSalesEntry(true)} 
-                            logoSrc={logo} 
-                            onLogoUpload={handleLogoChange} 
-                            onAddProduct={() => setShowAddProduct(true)} 
-                            onShowCount={() => setShowCountReview(true)} 
-                            isSaving={isSaving} 
-                            onToggleSearch={() => setShowSearch(!showSearch)} 
-                            showSearch={showSearch} 
-                            onToggleZoneSelector={() => setShowZoneSelector(!showZoneSelector)} 
-                            showZoneSelector={showZoneSelector} 
-                            onFilterCategory={setCategoryFilter}
-                            currentFilter={categoryFilter}
-                        />
-                        {showZoneSelector && (
-                            <LocationSelectionModal 
-                                isOpen={showZoneSelector} 
-                                onClose={() => setShowZoneSelector(false)}
-                                onSelect={(main, sub) => {
-                                    setCurrentLocation(main);
-                                    setLastSubZone(sub); // Set initial subzone context
-                                    setIsScanning(true); // Start scanner
-                                    setShowZoneSelector(false); // Close selector
-                                }}
-                            />
-                        )}
-                        {showSearch && (
-                            <div className="bg-[#0A0A0A]/90 p-4 border-b border-[#3A4048] backdrop-blur-sm animate-in"><div className="max-w-5xl mx-auto relative flex gap-2"><div className="relative flex-1"><Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#f0f6fc]/50" size={20} /><input type="text" placeholder="Search product..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#1D1F23] rounded-xl pl-10 pr-4 py-3 text-white border border-[#3A4048] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-[#f0f6fc]/40" autoFocus/></div><button onClick={() => { setShowSearch(false); setSearchTerm(""); }} className="bg-[#3A4048] hover:bg-[#4A5462] text-white px-4 rounded-xl font-bold border border-[#4A5462]">✕</button></div></div>
-                        )}
-                    </div>
-                    <input type="file" ref={fileInputRef} style={{display:'none'}} accept=".json" onChange={handleRestoreFile} />
-                    <main className="max-w-5xl mx-auto p-4 space-y-4 pt-6">
-                        {categoryFilter && (
-                            <div className="flex items-center justify-between bg-yellow-600/10 border border-yellow-500/30 p-3 rounded-lg mb-4">
-                                <span className="text-yellow-400 font-bold text-sm">Filtering by: {categoryFilter}</span>
-                                <button onClick={() => setCategoryFilter(null)} className="text-yellow-400 hover:text-white text-xs font-bold uppercase underline">Clear</button>
-                            </div>
-                        )}
-                        {filteredData.length === 0 && <div className="text-center py-20 text-[#f0f6fc]/50"><p>No products found.</p></div>}
-                        {filteredData.map((cat) => (<div key={cat.category} className="mb-6">{!searchTerm && <CategoryHeader title={cat.category} icon={getIcon(cat.category)} isOpen={openCategories[cat.category]} toggle={() => setOpenCategories(prev => ({...prev, [cat.category]: !prev[cat.category]}))} />}{(openCategories[cat.category] || searchTerm || categoryFilter) && (<div className="grid gap-2 sm:grid-cols-1 lg:grid-cols-2">{cat.items.map(item => (<InventoryRow key={item.id} item={item} onUpdate={updateItem} pendingBarcode={pendingBarcode} isWells={cat.category.includes("Wells")} categoryName={cat.category} onScanRequest={requestItemScan} onDelete={handleDeleteProduct} />))}</div>)}</div>))}
-                    </main>
-                    <button onClick={() => setShowAddProduct(true)} className="fixed bottom-6 right-6 z-40 bg-indigo-600 text-white p-4 rounded-full shadow-2xl hover:bg-indigo-500 transition-transform active:scale-95 border border-indigo-400 group" title="Add New Product"><Icons.Plus size={28} /></button>
-                    <ConfirmationModal isOpen={!!modalConfig} onClose={() => setModalConfig(null)} onConfirm={modalConfig?.onConfirm} title={modalConfig?.title} message={modalConfig?.message} isDestructive={modalConfig?.isDestructive} customActions={modalConfig?.customActions}/>
-                    <ImportModal isOpen={showImportModal} onClose={() => { setShowImportModal(false); setPendingImportData(null); }} onReplace={handleReplaceData} onMerge={handleMergeData} />
-                    <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} onAdd={handleAddNewProduct} categories={data.map(c => c.category)} />
-                    {showCharts && <ChartsView data={data} onClose={() => setShowCharts(false)} />}
-                    {showShopping && <ShoppingListModal isOpen={showShopping} onClose={() => setShowShopping(false)} items={shoppingItems} />}
-                    {showPurchasesLog && <PurchasesLogModal isOpen={showPurchasesLog} onClose={() => setShowPurchasesLog(false)} data={data} />}
-                    {showSalesEntry && <SalesEntryModal isOpen={showSalesEntry} onClose={() => setShowSalesEntry(false)} data={data} onUpdate={updateItem} onBatchUpdate={batchUpdateItems} />}
-                    {showCountReview && <CountReviewModal isOpen={showCountReview} onClose={() => setShowCountReview(false)} data={data} onUpdate={updateItem} />}
-                    {isScanning && !isResetting && (<ScannerModal key={scanAttempt} onScanSuccess={handleScanSuccess} onClose={() => { setIsScanning(false); setScanningForItem(null); }} />)}
-                    {quickScanItemId && activeQuickItem && (
-                        <QuickEditModal 
-                            item={activeQuickItem} 
-                            onClose={() => { 
-                                setQuickScanItemId(null); 
-                                setIsScanning(true); // Restart scanning loop
-                                setScanAttempt(prev => prev + 1); 
-                            }} 
-                            onUpdate={updateItem} 
-                            initialLocation={currentLocation} 
-                            initialSubZone={lastSubZone} // Enable tunnel mode if subzone is set
-                            onLocationChange={setCurrentLocation} 
-                            onSubZoneChange={setLastSubZone} 
+                    {pendingBarcode && (
+                        <LinkModal 
+                            barcode={pendingBarcode} 
+                            data={data} 
+                            onLink={handleLinkBarcode} 
+                            onClose={() => setPendingBarcode(null)} 
                         />
                     )}
-                    {notification && (<div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-[#1D1F23] text-white px-6 py-3 rounded-full shadow-2xl border border-[#3A4048] flex items-center gap-3 animate-in z-[100] whitespace-nowrap"><Icons.CheckCircle size={18} className="text-emerald-400" /><span className="font-medium text-sm">{notification}</span></div>)}
+
+                    {showCheck && <ReviewModal onClose={() => setShowCheck(false)} data={data} onUpdate={handleUpdate} />}
+                    {showLoc && <LocationModal onClose={() => setShowLoc(false)} onSelect={(l, s) => { setLoc(l); setSubZone(s); setShowLoc(false); }} />}
+                    {scanning && <ScannerModal onScan={handleScan} onClose={() => setScanning(false)} />}
+                    {editItem && (
+                        <QuickEditModal 
+                            item={editItem} 
+                            initialLocation={loc} 
+                            initialSubZone={subZone} 
+                            onClose={() => setEditItem(null)} 
+                            onContinue={() => {
+                                setEditItem(null);
+                                setTimeout(() => setScanning(true), 300); 
+                            }}
+                            onUpdate={handleUpdate} 
+                        />
+                    )}
                 </div>
             );
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<ErrorBoundary><App /></ErrorBoundary>);
+        root.render(<App />);
     </script>
 </body>
 </html>
