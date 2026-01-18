@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v30 - Case Ready</title>
+    <title>Scanner v31 - Zone Specific UI</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -21,7 +21,6 @@
         input, select { background-color: rgba(20,20,20,1) !important; border-color: #333 !important; color: white !important; font-size: 16px !important; }
         .animate-in { animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .bluetooth-glow { box-shadow: 0 0 15px #3b82f6; border-color: #60a5fa; }
         #reader { border-radius: 1.5rem !important; overflow: hidden; width: 100% !important; }
         #reader video { object-fit: cover; border-radius: 1.5rem; }
         .menu-backdrop { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
@@ -38,7 +37,7 @@
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // ✅ TUS CREDENCIALES
         const FIREBASE_CONFIG = { 
@@ -296,7 +295,30 @@
                         Total Zone: <span className="text-white">{value}</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm mb-4"><div className="flex flex-col gap-2 items-end"><button onClick={()=>handleDelta(-24)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 24</button><button onClick={()=>handleDelta(-12)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 12</button><button onClick={()=>handleDelta(-6)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 6</button><button onClick={()=>handleDelta(-5)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 5</button><button onClick={()=>handleDelta(-1)} className="w-full h-14 bg-red-600 text-white rounded-xl font-black text-2xl shadow-lg border border-red-400">- 1</button></div><div className="flex flex-col gap-2 items-start"><button onClick={()=>handleDelta(24)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 24</button><button onClick={()=>handleDelta(12)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 12</button><button onClick={()=>handleDelta(6)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 6</button><button onClick={()=>handleDelta(5)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 5</button><button onClick={()=>handleDelta(1)} className="w-full h-14 bg-emerald-600 text-white rounded-xl font-black text-2xl shadow-lg border border-emerald-400">+ 1</button></div></div><div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm"><button onClick={()=>handleDelta(-0.1)} className="bg-gray-800 text-red-400 h-12 rounded-xl font-bold text-lg border border-gray-700">- 0.1</button><button onClick={()=>handleDelta(0.1)} className="bg-gray-800 text-emerald-400 h-12 rounded-xl font-bold text-lg border border-gray-700">+ 0.1</button></div>
+                    <div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm mb-4">
+                        {/* Left Column (Subtract) */}
+                        <div className="flex flex-col gap-2 items-end">
+                            {!isOpenZone && <button onClick={()=>handleDelta(-24)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 24</button>}
+                            <button onClick={()=>handleDelta(-12)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 12</button>
+                            <button onClick={()=>handleDelta(-6)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 6</button>
+                            {!isOpenZone && <button onClick={()=>handleDelta(-5)} className="w-full h-12 bg-red-900/20 text-red-500 border border-red-900/50 rounded-xl font-bold">- 5</button>}
+                            <button onClick={()=>handleDelta(-1)} className="w-full h-14 bg-red-600 text-white rounded-xl font-black text-2xl shadow-lg border border-red-400">- 1</button>
+                        </div>
+                        {/* Right Column (Add) */}
+                        <div className="flex flex-col gap-2 items-start">
+                            {!isOpenZone && <button onClick={()=>handleDelta(24)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 24</button>}
+                            <button onClick={()=>handleDelta(12)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 12</button>
+                            <button onClick={()=>handleDelta(6)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 6</button>
+                            {!isOpenZone && <button onClick={()=>handleDelta(5)} className="w-full h-12 bg-emerald-900/20 text-emerald-500 border border-emerald-900/50 rounded-xl font-bold">+ 5</button>}
+                            <button onClick={()=>handleDelta(1)} className="w-full h-14 bg-emerald-600 text-white rounded-xl font-black text-2xl shadow-lg border border-emerald-400">+ 1</button>
+                        </div>
+                    </div>
+                    
+                    {/* DECIMAL BUTTONS (Always visible) */}
+                    <div className="grid grid-cols-2 gap-4 w-full px-6 max-w-sm">
+                        <button onClick={()=>handleDelta(-0.1)} className="bg-gray-800 text-red-400 h-12 rounded-xl font-bold text-lg border border-gray-700">- 0.1</button>
+                        <button onClick={()=>handleDelta(0.1)} className="bg-gray-800 text-emerald-400 h-12 rounded-xl font-bold text-lg border border-gray-700">+ 0.1</button>
+                    </div>
                 
                     {/* --- MANUAL WEIGHT SECTION (ONLY FOR SHELF OPEN) --- */}
                     {isOpenZone && (
@@ -469,7 +491,7 @@
                     <div className="flex justify-between items-center mb-6 relative">
                         <div className="flex flex-col">
                              <h1 className="font-black text-2xl text-white italic leading-none">SCANNER <span className="text-indigo-500">PRO</span></h1>
-                             <span className="text-[10px] text-gray-600 font-mono tracking-widest">v29.0</span>
+                             <span className="text-[10px] text-gray-600 font-mono tracking-widest">v31.0</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
