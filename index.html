@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v37 - MultiCount Slots</title>
+    <title>Scanner v38 - Reaching Logic</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -177,13 +177,15 @@
                             if (mainTotal === 0) return null;
                             return (
                                 <div key={main.id} className="space-y-3"><div className="sticky top-0 z-10 bg-gray-900/90 backdrop-blur border-b border-gray-800 py-2"><h3 className={`font-black text-lg uppercase ${main.color}`}>{main.label} <span className="text-white text-sm opacity-50 ml-2">({mainTotal})</span></h3></div>{subZones.map(zone => { const zoneItems = data.flatMap(cat => cat.items.filter(i => (parseFloat(i[zone.id])||0) > 0)).map(i => ({...i, val: parseFloat(i[zone.id])})); if (zoneItems.length === 0) return null; return (<div key={zone.id} className="pl-2 border-l-2 border-gray-800 ml-1"><div className="text-sm font-bold text-gray-400 mb-2 flex items-center gap-2">{zone.icon} {zone.label}</div><div className="grid gap-2">{zoneItems.map(item => (<div key={item.id} className="bg-gray-900 p-3 rounded-xl border border-gray-800 flex justify-between items-center"><span className="font-medium text-white text-sm truncate pr-2">{item.name}</span>
-                                    {/* SPECIAL LOGIC FOR REVIEW: SHOW BREAKDOWN */}
+                                    {/* SPECIAL LOGIC FOR REVIEW: SHOW BREAKDOWN FOR CORONA/MODELO IN BEER COOLER */}
                                     {(zone.id === 'bar1_cooler' && (item.name.toLowerCase().includes('corona') || item.name.toLowerCase().includes('modelo')) && item.breakdown_bar1_cooler) ? (
                                         <div className="flex flex-col items-end">
-                                            <span className="text-xs text-gray-500 font-mono mb-1">
-                                                ({item.breakdown_bar1_cooler.join(' + ')})
+                                            <span className="text-[10px] text-gray-500 font-mono mb-1 tracking-tighter">
+                                                {item.breakdown_bar1_cooler.map(v=>v||0).join('+')}
                                             </span>
-                                            <input type="number" value={item.val} readOnly className="w-16 bg-black border border-gray-700 rounded px-2 py-1 text-right text-white font-mono font-bold focus:border-emerald-500 outline-none opacity-50"/>
+                                            <div className="bg-black border border-emerald-500/50 rounded px-2 py-1 text-right text-emerald-400 font-mono font-bold text-sm">
+                                                {item.val}
+                                            </div>
                                         </div>
                                     ) : (
                                         <input type="number" value={item.val} onChange={(e) => { const val = parseFloat(e.target.value) || 0; let newTotal = val; subZones.forEach(z => { if(z.id !== zone.id) newTotal += (parseFloat(item[z.id])||0); }); onUpdate(item.id, { [zone.id]: val, [main.id]: newTotal }); }} className="w-16 bg-black border border-gray-700 rounded px-2 py-1 text-right text-white font-mono font-bold focus:border-emerald-500 outline-none"/>
@@ -243,7 +245,7 @@
             const subZoneLabel = zones.find(z=>z.id===subZoneId)?.label;
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
             
-            const isOpenZone = (initialSubZone === 'bar1_shelf_open');
+            const isOpenZone = (initialSubZone === 'bar1_shelf_open' || initialSubZone === 'bar1_reaching'); // Added Reaching here too
             const [manualGrams, setManualGrams] = useState("");
 
             // SPECIAL 4-SLOT LOGIC FOR CORONA/MODELO IN BEER COOLER
@@ -259,7 +261,7 @@
             useEffect(() => { 
                 if(!isMultiCount) setValue(parseFloat(item[targetField]) || 0); 
                 else {
-                    const sum = slots.reduce((a, b) => a + parseFloat(b||0), 0);
+                    const sum = slots.reduce((a, b) => a + (parseFloat(b)||0), 0);
                     setValue(sum);
                 }
             }, [item, targetField, isMultiCount, slots]);
@@ -389,7 +391,7 @@
                         </>
                     )}
                 
-                    {/* --- MANUAL WEIGHT SECTION (ONLY FOR SHELF OPEN) --- */}
+                    {/* --- MANUAL WEIGHT SECTION (ONLY FOR SHELF OPEN OR REACHING) --- */}
                     {isOpenZone && (
                         <div className="mt-6 w-full px-6 max-w-sm border-t border-gray-800 pt-4">
                             {(!item.weight_full || !item.weight_empty) ? (
