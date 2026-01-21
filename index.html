@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner v4.2 - Weight UI Fix</title>
+    <title>Scanner v4.3 - Etekcity Bluetooth</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -22,6 +22,7 @@
             --neon-purple: #8b5cf6;
             --neon-pink: #ec4899;
             --neon-green: #10b981;
+            --neon-blue: #3b82f6; /* Nuevo para Bluetooth */
             --bg-dark: #050505;
         }
         
@@ -88,7 +89,7 @@
 
         .text-neon-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(6,182,212,0.5); }
         .text-neon-purple { color: var(--neon-purple); text-shadow: 0 0 10px rgba(139,92,246,0.5); }
-        .border-neon-cyan { border-color: var(--neon-cyan); }
+        .text-neon-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(59,130,246,0.5); }
     </style>
 </head>
 <body>
@@ -102,7 +103,11 @@
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- ETEKCITY BLUETOOTH CONFIG ---
+        const SCALE_SERVICE_UUID = 0xFFF0; 
+        const SCALE_CHAR_UUID    = 0xFFF1; 
 
         // ✅ TUS CREDENCIALES
         const FIREBASE_CONFIG = { 
@@ -130,6 +135,7 @@
                 if (type === 'add') { osc.type = "triangle"; osc.frequency.setValueAtTime(600, now); osc.frequency.exponentialRampToValueAtTime(900, now + 0.1); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15); osc.start(now); osc.stop(now + 0.15); }
                 if (type === 'sub') { osc.type = "square"; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.15); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2); osc.start(now); osc.stop(now + 0.2); }
                 if (type === 'blip') { osc.type = "sine"; osc.frequency.setValueAtTime(1000, now); osc.frequency.exponentialRampToValueAtTime(1000, now + 0.05); gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05); osc.start(now); osc.stop(now + 0.05); }
+                if (type === 'connect') { osc.type = "sine"; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.2); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4); osc.start(now); osc.stop(now + 0.4); }
             } catch (e) {}
         };
 
@@ -146,7 +152,7 @@
             Link: (p) => <IconWrapper {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></IconWrapper>,
             Save: (p) => <IconWrapper {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconWrapper>,
             Star: (p) => <IconWrapper {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></IconWrapper>,
-            Package: (p) => <IconWrapper {...p}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
+            Package: (p) => <IconWrapper {...p}><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></IconWrapper>,
             Barcode: (p) => <IconWrapper {...p}><path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v14"/><path d="M17 5v14"/><path d="M21 5v14"/></IconWrapper>,
             ShoppingCart: (p) => <IconWrapper {...p}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></IconWrapper>,
             Settings: (p) => <IconWrapper {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></IconWrapper>,
@@ -154,9 +160,9 @@
             Wrench: (p) => <IconWrapper {...p}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconWrapper>,
             Refresh: (p) => <IconWrapper {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></IconWrapper>,
             Reset: (p) => <IconWrapper {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></IconWrapper>,
-            Upload: (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconWrapper>
+            Upload: (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconWrapper>,
+            Bluetooth: (p) => <IconWrapper {...p}><path d="m7 7 10 10-5 5V2l5 5L7 17"/></IconWrapper>
         };
-
         const LoginScreen = ({ onLogin }) => {
             const [pin, setPin] = useState("");
             
@@ -177,9 +183,7 @@
             return (
                 <div className="fixed inset-0 flex flex-col items-center justify-center p-4 z-50 bg-[#000000]">
                     <div className="glass-strong w-full max-w-sm p-8 rounded-3xl border border-white/10 relative overflow-hidden">
-                        {/* Glow effect decorative */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
-                        
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">SCANNER <span className="text-cyan-400">PRO</span></h1>
                             <p className="text-cyan-500/70 text-sm mt-2 font-mono uppercase tracking-widest">Identify Yourself</p>
@@ -236,14 +240,9 @@
                 </div>
             );
         };
+
         const ReviewModal = ({ onClose, data, onUpdate }) => {
-            const mainLocs = [ 
-                { id: 'bar1', label: 'Bar 1', color: 'text-cyan-400', border: 'border-cyan-500' }, 
-                { id: 'bar2', label: 'Bar 2', color: 'text-purple-400', border: 'border-purple-500' }, 
-                { id: 'bodega', label: 'Storage', color: 'text-amber-400', border: 'border-amber-500' }, 
-                { id: 'barroluco', label: 'Barroluco', color: 'text-pink-400', border: 'border-pink-500' } 
-            ];
-            
+            const mainLocs = [ { id: 'bar1', label: 'Bar 1', color: 'text-cyan-400', border: 'border-cyan-500' }, { id: 'bar2', label: 'Bar 2', color: 'text-purple-400', border: 'border-purple-500' }, { id: 'bodega', label: 'Storage', color: 'text-amber-400', border: 'border-amber-500' }, { id: 'barroluco', label: 'Barroluco', color: 'text-pink-400', border: 'border-pink-500' } ];
             return (
                 <div className="fixed inset-0 z-50 flex flex-col animate-in backdrop-blur-xl bg-black/90">
                     <div className="p-4 bg-black/80 border-b border-white/10 flex justify-between items-center shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.8)]"><h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.List className="text-neon-cyan" /> Count Check</h2><button onClick={onClose} className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-xl font-bold border border-white/10 backdrop-blur-md transition-all">Close</button></div>
@@ -255,10 +254,7 @@
                             if (mainTotal === 0) return null;
                             return (
                                 <div key={main.id} className="space-y-3 relative">
-                                    <div className={`sticky top-0 z-10 glass-strong py-3 px-4 rounded-xl mb-4 flex justify-between items-center border-l-4 ${main.border}`}>
-                                        <h3 className={`font-black text-lg uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${main.color}`}>{main.label}</h3> 
-                                        <span className="text-white font-mono text-sm font-bold bg-black/50 px-3 py-1 rounded border border-white/10 shadow-inner">Total: {mainTotal}</span>
-                                    </div>
+                                    <div className={`sticky top-0 z-10 glass-strong py-3 px-4 rounded-xl mb-4 flex justify-between items-center border-l-4 ${main.border}`}><h3 className={`font-black text-lg uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${main.color}`}>{main.label}</h3><span className="text-white font-mono text-sm font-bold bg-black/50 px-3 py-1 rounded border border-white/10 shadow-inner">Total: {mainTotal}</span></div>
                                     {subZones.map(zone => { 
                                         const zoneItems = data.flatMap(cat => cat.items.filter(i => (parseFloat(i[zone.id])||0) > 0)).map(i => ({...i, val: parseFloat(i[zone.id])})); 
                                         if (zoneItems.length === 0) return null; 
@@ -316,19 +312,26 @@
                 </div>
             );
         };
-
         const QuickEditModal = ({ item, onClose, onContinue, onUpdate, initialLocation, initialSubZone, onOpenCalibration }) => {
             const [value, setValue] = useState(0);
+            const [manualGrams, setManualGrams] = useState("");
+            const [isScaleConnected, setIsScaleConnected] = useState(false);
+            
+            // SCALE CONFIG
+            const SCALE_SERVICE_UUID = 0xFFF0;
+            const SCALE_CHAR_UUID    = 0xFFF1;
+
             const zones = ZONES_CONFIG[initialLocation] || [];
             const subZoneId = initialSubZone || (zones[0]?.id);
             const subZoneLabel = zones.find(z=>z.id===subZoneId)?.label;
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
             
+            // Zones allowed for Bluetooth Scale
             const isOpenZone = ['bar1_shelf_open', 'bar1_well_1', 'bar1_well_2'].includes(initialSubZone);
+            
             const isSmallGroup = ['bar1_shelf_full', 'bar2_cooler', 'bar2_small_cooler', 'bodega_closet'].includes(initialSubZone) || initialLocation === 'barroluco';
             const isMultiCount = (subZoneId === 'bar1_cooler' && (item.name.toLowerCase().includes('corona') || item.name.toLowerCase().includes('modelo')));
             
-            const [manualGrams, setManualGrams] = useState("");
             const [slots, setSlots] = useState(() => { if(isMultiCount && item.breakdown_bar1_cooler) return item.breakdown_bar1_cooler; return [0, 0, 0, 0]; });
             const [startVal] = useState(() => parseFloat(item[targetField]) || 0);
 
@@ -338,30 +341,80 @@
             const handleSlotChange = (idx, val) => { const newSlots = [...slots]; newSlots[idx] = val === "" ? 0 : parseFloat(val); setSlots(newSlots); const newSum = newSlots.reduce((a, b) => a + b, 0); setValue(newSum); let newTotal = 0; zones.forEach(z => { if (z.id === subZoneId) newTotal += newSum; else newTotal += (parseFloat(item[z.id]) || 0); }); onUpdate(item.id, { [subZoneId]: newSum, [initialLocation]: newTotal, breakdown_bar1_cooler: newSlots }); };
             const handleDelta = (delta) => { const next = Math.max(0, Math.round((value + delta) * 100) / 100); updateValue(next); if(delta>0) playSound('add'); else playSound('sub'); };
             
-            // Real Time Calc Logic
-            const handleManualInput = (val) => {
-                setManualGrams(val);
-                const grams = parseFloat(val);
-                if (isNaN(grams) && val !== "") return;
-                if (val === "") return;
+            // --- LOGICA DE CALCULO (Manual + Bluetooth) ---
+            const performCalculation = (gramsInput) => {
+                const grams = parseFloat(gramsInput);
+                if (isNaN(grams) && gramsInput !== "") return;
+                if (gramsInput === "") return;
+
                 const full = parseFloat(item.weight_full);
                 const empty = parseFloat(item.weight_empty);
+                
+                // Si no hay configuración, no calculamos nada
                 if (!full || !empty) return; 
+                
                 const netLiquid = full - empty;
                 const currentLiquid = grams - empty;
+                
                 let calculatedUnits = currentLiquid / netLiquid;
                 if (calculatedUnits < 0) calculatedUnits = 0;
+                
                 const finalVal = Math.round(calculatedUnits * 100) / 100;
                 updateValue(finalVal);
             };
+
+            const handleManualInput = (val) => {
+                setManualGrams(val);
+                performCalculation(val);
+            };
+
+            // --- LOGICA BLUETOOTH ETEKCITY ---
+            const connectScale = async () => {
+                try {
+                    const device = await navigator.bluetooth.requestDevice({
+                        filters: [{ namePrefix: 'Etekcity' }], 
+                        optionalServices: [SCALE_SERVICE_UUID]
+                    });
+                    
+                    const server = await device.gatt.connect();
+                    const service = await server.getPrimaryService(SCALE_SERVICE_UUID);
+                    const characteristic = await service.getCharacteristic(SCALE_CHAR_UUID);
+
+                    await characteristic.startNotifications();
+                    setIsScaleConnected(true);
+                    playSound('connect');
+
+                    characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                        const value = event.target.value;
+                        if (value.byteLength < 12) return;
+
+                        // Leemos el valor crudo (byte 11) y dividimos por 10 segun tu logica
+                        const weightRaw = value.getUint16(11, true); 
+                        const finalWeight = (weightRaw / 10).toFixed(1); // 1 decimal para precisión
+
+                        setManualGrams(finalWeight);
+                        performCalculation(finalWeight);
+                    });
+
+                } catch (error) {
+                    console.error("Scale Error:", error);
+                    alert("Bluetooth Error: " + error.message);
+                    setIsScaleConnected(false);
+                }
+            };
+            // -----------------------------------
 
             const sessionDiff = Math.round((value - startVal) * 100) / 100; const diffSign = sessionDiff > 0 ? "+" : ""; const diffColor = sessionDiff > 0 ? "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]" : sessionDiff < 0 ? "text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" : "text-gray-600";
 
             return (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center p-2 animate-in backdrop-blur-xl bg-black/90"><div className="glass-strong w-full max-w-md rounded-3xl overflow-hidden flex flex-col h-[90vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/5 relative"><div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 opacity-50"></div><div className="p-5 bg-black/40 border-b border-white/5 flex justify-between items-center"><div><h2 className="text-2xl font-black text-white leading-none tracking-tight">{item.name}</h2><div className="text-xs text-cyan-400 font-mono mt-1 uppercase tracking-widest">{initialLocation} {subZoneLabel ? `> ${subZoneLabel}` : ''}</div></div><button onClick={onClose} className="bg-white/5 hover:bg-white/10 text-white p-3 rounded-xl font-bold backdrop-blur-md transition-all active:scale-90">✕</button></div><div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-900/5 to-transparent pointer-events-none"></div>
+                    
+                    {/* BIG NUMBER DISPLAY */}
                     <div className={`text-[9rem] font-black font-mono tracking-tighter leading-none mb-4 transition-all duration-200 select-none ${diffColor}`}>{diffSign}{sessionDiff}</div>
-                    <div className="text-xl font-mono font-bold text-gray-400 mb-8 bg-black/60 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg">Total: <span className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">{value}</span></div>
+                    
+                    {/* TOTAL DISPLAY */}
+                    <div className="text-xl font-mono font-bold text-gray-400 mb-6 bg-black/60 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg">Total: <span className="text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">{value}</span></div>
 
                     {isMultiCount ? (
                         <div className="w-full px-6 max-w-sm relative z-10">
@@ -370,25 +423,52 @@
                         </div>
                     ) : (
                         <>
-                            {/* MOVED: WEIGHT INPUT HERE (Before Buttons) */}
+                            {/* --- WEIGHT CALCULATOR & BLUETOOTH (Placed HERE) --- */}
                             {isOpenZone && (
-                                <div className="w-full px-6 max-w-sm relative z-10 mb-5">
+                                <div className="w-full px-6 max-w-sm relative z-10 mb-6 animate-in">
                                     {(!item.weight_full || !item.weight_empty) ? (
                                         <button onClick={() => onOpenCalibration(item)} className="w-full py-4 bg-yellow-500/10 border border-yellow-500/50 rounded-xl text-yellow-400 font-bold flex items-center justify-center gap-2 hover:bg-yellow-500/20 transition-all shadow-[0_0_15px_rgba(234,179,8,0.2)] backdrop-blur-sm animate-pulse"><Icons.Wrench /> ⚠️ SETUP WEIGHTS</button>
                                     ) : (
                                         <div className="flex flex-col gap-3">
-                                            <div className="flex justify-between items-center px-1"><span className="text-xs text-cyan-500 font-bold uppercase tracking-widest">Weight Calc</span><button onClick={() => onOpenCalibration(item)} className="text-xs text-indigo-400 font-bold flex items-center gap-1 hover:text-white transition-colors"><Icons.Wrench size={12} /> Edit Setup</button></div>
-                                            <div className="flex gap-3">
-                                                <div className="relative w-full">
-                                                    <input type="number" placeholder="Enter Grams..." className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-4 text-white font-mono text-center text-2xl focus:border-cyan-500 focus:shadow-[0_0_15px_rgba(6,182,212,0.3)] outline-none transition-all placeholder-gray-700" value={manualGrams} onChange={e=>handleManualInput(e.target.value)} />
-                                                    <div className="absolute right-4 top-5 text-gray-500 text-sm font-bold">g</div>
-                                                </div>
+                                            {/* Header with Bluetooth Button */}
+                                            <div className="flex justify-between items-end px-1">
+                                                <span className="text-xs text-cyan-500 font-bold uppercase tracking-widest">Weight Calc</span>
+                                                <button 
+                                                    onClick={connectScale}
+                                                    disabled={isScaleConnected}
+                                                    className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all flex items-center gap-1 uppercase tracking-wider
+                                                        ${isScaleConnected 
+                                                            ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)]' 
+                                                            : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white'}
+                                                    `}
+                                                >
+                                                    <Icons.Bluetooth className="w-3 h-3" /> {isScaleConnected ? "Connected" : "Connect Scale"}
+                                                </button>
+                                            </div>
+                                            
+                                            {/* Auto-Calc Input */}
+                                            <div className="relative w-full group">
+                                                <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur transition-opacity duration-500 ${manualGrams ? 'opacity-100' : 'opacity-0'}`}></div>
+                                                <input 
+                                                    type="number" 
+                                                    placeholder="0" 
+                                                    className={`relative w-full bg-black/60 border rounded-xl px-4 py-3 text-white font-mono text-center text-3xl outline-none transition-all placeholder-gray-700
+                                                        ${isScaleConnected 
+                                                            ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
+                                                            : 'border-white/20 focus:border-cyan-500 focus:shadow-[0_0_15px_rgba(6,182,212,0.3)]'}
+                                                    `}
+                                                    value={manualGrams} 
+                                                    onChange={e=>handleManualInput(e.target.value)} 
+                                                />
+                                                <div className="absolute right-4 top-5 text-gray-500 text-xs font-bold pointer-events-none">g</div>
+                                                {manualGrams && <div className="absolute left-4 top-5 text-cyan-500 text-[10px] font-bold pointer-events-none animate-pulse">AUTO</div>}
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             )}
 
+                            {/* --- +/- BUTTONS --- */}
                             <div className="grid grid-cols-2 gap-5 w-full px-6 max-w-sm mb-5 relative z-10">
                                 <div className="flex flex-col gap-3 items-end">
                                     {isSmallGroup ? (
@@ -424,6 +504,7 @@
                                 </div>
                             </div>
                             
+                            {/* Decimal Buttons (ONLY for Open Zones) */}
                             {isOpenZone && (
                                 <div className="grid grid-cols-2 gap-5 w-full px-6 max-w-sm relative z-10">
                                     <button onClick={()=>handleDelta(-0.1)} className="bg-white/5 hover:bg-white/10 text-red-400 h-12 rounded-xl font-bold text-lg border border-white/5 transition-all active:scale-95">- 0.1</button>
@@ -436,7 +517,6 @@
                     </div><button onClick={onContinue} className="m-5 bg-gradient-to-r from-indigo-900/80 to-purple-900/80 hover:from-indigo-800 hover:to-purple-800 text-white font-black text-xl h-16 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.3)] active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/10 relative z-20">DONE <span className="text-xs font-normal opacity-60 font-mono tracking-widest">(NEXT SCAN)</span></button></div></div>
             );
         };
-
         const LocationModal = ({ onClose, onSelect }) => {
             const locs = [
                 {id:'bar1',l:'Bar 1',i:Icons.Beer, c: 'text-cyan-400'},
@@ -446,13 +526,22 @@
                 {id:'purchases',l:'Purchases',i:Icons.ShoppingCart, c: 'text-emerald-400'}
             ];
             const [selMain, setSelMain] = useState(null);
+            
+            // FIX: Prevent crash if zone has no sub-zones defined
+            const subZones = selMain ? (ZONES_CONFIG[selMain] || []) : [];
+
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in backdrop-blur-xl bg-black/80">
                     <div className="glass-strong w-full max-w-lg rounded-3xl overflow-hidden flex flex-col max-h-[80vh] shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-white/5">
                         <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/40"><h2 className="text-white font-bold tracking-widest uppercase text-sm">{selMain ? 'Select Zone' : 'Select Location'}</h2><button onClick={onClose} className="text-gray-500 font-bold hover:text-white transition-colors">CANCEL</button></div>
                         <div className="p-4 overflow-y-auto grid grid-cols-2 gap-4">
                             {!selMain ? locs.map(l=><button key={l.id} onClick={()=>{if(ZONES_CONFIG[l.id]) setSelMain(l.id); else onSelect(l.id, null);}} className="glass hover:bg-white/5 hover:border-white/20 text-white p-6 rounded-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group border-transparent"><l.i className={`w-10 h-10 ${l.c} drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] group-hover:scale-110 transition-transform`}/><span className="font-bold tracking-wider">{l.l}</span></button>) : 
-                            (ZONES_CONFIG[selMain] || []).map(z=><button key={z.id} onClick={()=>onSelect(selMain, z.id)} className="glass hover:bg-white/5 hover:border-white/20 text-white p-5 rounded-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group border-transparent"><span className="text-3xl filter grayscale group-hover:grayscale-0 transition-all duration-300">{z.icon}</span><span className="font-medium text-sm text-gray-300 group-hover:text-white">{z.label}</span></button>)}
+                            subZones.map(z=><button key={z.id} onClick={()=>onSelect(selMain, z.id)} className="glass hover:bg-white/5 hover:border-white/20 text-white p-5 rounded-2xl flex flex-col items-center gap-3 transition-all active:scale-95 group border-transparent"><span className="text-3xl filter grayscale group-hover:grayscale-0 transition-all duration-300">{z.icon}</span><span className="font-medium text-sm text-gray-300 group-hover:text-white">{z.label}</span></button>)}
+                            
+                            {/* Empty State protection */}
+                            {selMain && subZones.length === 0 && (
+                                <div className="col-span-2 text-center text-gray-500 py-10">No sub-zones. <button onClick={()=>onSelect(selMain, null)} className="text-cyan-400 underline ml-2">Select Main</button></div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -478,6 +567,7 @@
                 </div>
             );
         };
+
         function App() {
             const [auth, setAuth] = useState(false);
             const [data, setData] = useState([]);
@@ -497,15 +587,11 @@
             const [isOnline, setIsOnline] = useState(navigator.onLine);
             const [uploading, setUploading] = useState(false);
 
-            // Handle Online Status
             useEffect(() => {
                 const handleStatus = () => setIsOnline(navigator.onLine);
                 window.addEventListener('online', handleStatus);
                 window.addEventListener('offline', handleStatus);
-                return () => {
-                    window.removeEventListener('online', handleStatus);
-                    window.removeEventListener('offline', handleStatus);
-                };
+                return () => { window.removeEventListener('online', handleStatus); window.removeEventListener('offline', handleStatus); };
             }, []);
 
             useEffect(() => {
@@ -517,24 +603,13 @@
                     if (u) {
                         setStatus("Cloud Connected ☁️");
                         const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
-                        window.fb.onSnapshot(window.fb.doc(db, path, 'master'), (s) => {
-                            if(s.exists()) setData(s.data().items);
-                        });
+                        window.fb.onSnapshot(window.fb.doc(db, path, 'master'), (s) => { if(s.exists()) setData(s.data().items); });
                     } else setStatus("Offline");
                 });
             }, []);
 
             const handleUpdate = (id, fieldOrObj, val) => {
-                const newData = data.map(cat => ({
-                    ...cat, 
-                    items: cat.items.map(i => {
-                        if(i.id === id) {
-                            if(typeof fieldOrObj === 'object') return {...i, ...fieldOrObj};
-                            return {...i, [fieldOrObj]: val};
-                        }
-                        return i;
-                    })
-                }));
+                const newData = data.map(cat => ({ ...cat, items: cat.items.map(i => { if(i.id === id) { if(typeof fieldOrObj === 'object') return {...i, ...fieldOrObj}; return {...i, [fieldOrObj]: val}; } return i; }) }));
                 setData(newData);
                 const db = window.fb.getFirestore();
                 const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
@@ -543,63 +618,32 @@
 
             const handleLocalReset = () => {
                 if(!confirm("Reset local counts? (This clears your view to 0)")) return;
-                const resetData = data.map(cat => ({
-                    ...cat,
-                    items: cat.items.map(i => {
-                        const resetItem = { ...i };
-                        Object.values(ZONES_CONFIG).forEach(zoneArr => { zoneArr.forEach(z => { resetItem[z.id] = 0; }); });
-                        ['bar1', 'bar2', 'bodega', 'barroluco', 'purchases'].forEach(k => { resetItem[k] = 0; });
-                        return resetItem;
-                    })
-                }));
-                setData(resetData);
-                playSound('sub'); 
-                setShowMenu(false);
+                const resetData = data.map(cat => ({ ...cat, items: cat.items.map(i => { const resetItem = { ...i }; Object.values(ZONES_CONFIG).forEach(zoneArr => { zoneArr.forEach(z => { resetItem[z.id] = 0; }); }); ['bar1', 'bar2', 'bodega', 'barroluco', 'purchases'].forEach(k => { resetItem[k] = 0; }); return resetItem; }) }));
+                setData(resetData); playSound('sub'); setShowMenu(false);
             };
 
             const handleBackup = () => {
                 const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `Pro_Scan_Backup_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const link = document.createElement("a"); link.href = url; link.download = `Scanner_Backup_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
             };
 
             const handleScan = (txt) => {
                 let found = null;
                 for(const c of data) { const m = c.items.find(i => (i.barcode && i.barcode.includes(txt)) || (i.barcode_case && i.barcode_case === txt)); if(m){found=m; break;} }
-                if(found) { 
-                    setEditItem(found); 
-                    setScanning(false); 
-                    playSound('success'); 
-                } else {
-                    playSound('error');
-                    setPendingBarcode(txt);
-                    setScanning(false);
-                }
+                if(found) { setEditItem(found); setScanning(false); playSound('success'); } else { playSound('error'); setPendingBarcode(txt); setScanning(false); }
             };
 
             const handleLinkBarcode = (item) => {
                 const currentCodes = item.barcode ? item.barcode : "";
                 const newCodes = currentCodes ? `${currentCodes},${pendingBarcode}` : pendingBarcode;
                 handleUpdate(item.id, 'barcode', newCodes);
-                setPendingBarcode(null);
-                setEditItem(item); 
-                playSound('success');
+                setPendingBarcode(null); setEditItem(item); playSound('success');
             };
 
-            const updateItemStickers = (itemId, newStickersArray) => {
-                handleUpdate(itemId, 'sticker_ids', newStickersArray);
-            };
-            
-            const saveBottleWeights = (itemId, full, empty) => {
-                handleUpdate(itemId, { weight_full: full, weight_empty: empty });
-                setCalibratingItem(null);
-                playSound('success');
-            };
+            const updateItemStickers = (itemId, newStickersArray) => handleUpdate(itemId, 'sticker_ids', newStickersArray);
+            const saveBottleWeights = (itemId, full, empty) => { handleUpdate(itemId, { weight_full: full, weight_empty: empty }); setCalibratingItem(null); playSound('success'); };
 
             const filteredData = useMemo(() => {
                 const term = search.toLowerCase();
@@ -610,53 +654,35 @@
 
             return (
                 <div className="pb-40 pt-6 px-5 max-w-xl mx-auto relative min-h-screen">
-                    {/* Header Zone */}
                     <div className="flex justify-between items-end mb-8 relative z-20">
                         <div className="flex flex-col">
                              <h1 className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 italic leading-none drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">SCANNER <span className="text-white">PRO</span></h1>
                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">Sys.v4.2</span>
+                                <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase">Sys.v4.3</span>
                                 <div className={`w-2 h-2 rounded-full animate-pulse ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'}`}></div>
                              </div>
                         </div>
-                        
                         <div className="flex items-center gap-3">
-                            {/* BOTÓN CHECK LIST (Reemplaza al de Upload/Arrow) */}
-                            <button 
-                                onClick={() => setShowCheck(true)}
-                                className="glass text-white p-3 rounded-xl hover:bg-cyan-500/10 hover:border-cyan-500/50 active:scale-95 transition-all group hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]"
-                            >
+                            <button onClick={() => setShowCheck(true)} className="glass text-white p-3 rounded-xl hover:bg-cyan-500/10 hover:border-cyan-500/50 active:scale-95 transition-all group hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                                 <Icons.List className="h-6 w-6 group-hover:text-cyan-400 transition-colors" />
                             </button>
-
-                            {/* BOTÓN SETTINGS (Ruedita) */}
                             <button onClick={() => setShowMenu(!showMenu)} className="glass text-white p-3 rounded-xl hover:bg-purple-500/10 hover:border-purple-500/50 active:scale-95 transition-all group hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                                 <Icons.Settings className="group-hover:text-purple-400 transition-colors" />
                             </button>
                         </div>
-
                         {showMenu && (
                             <>
                                 <div className="menu-backdrop" onClick={() => setShowMenu(false)}></div>
                                 <div className="absolute top-16 right-0 glass-strong p-2 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,1)] z-50 flex flex-col gap-1 w-64 animate-in border border-white/10">
-                                    {/* MENU REORDENADO */}
-                                    {/* 1. Purchases */}
                                     <button onClick={() => { setShowPurchases(true); setShowMenu(false); }} className="flex items-center gap-3 p-4 hover:bg-white/5 rounded-xl text-gray-300 hover:text-white font-bold transition-all text-sm uppercase tracking-wide border border-transparent hover:border-white/10"><Icons.Package className="text-emerald-500" /> Purchases</button>
-                                    
-                                    {/* 2. Bottle Ctrl */}
                                     <button onClick={() => { setShowPremium(true); setShowMenu(false); }} className="flex items-center gap-3 p-4 hover:bg-white/5 rounded-xl text-gray-300 hover:text-white font-bold transition-all text-sm uppercase tracking-wide border border-transparent hover:border-white/10"><Icons.Star className="text-yellow-500" /> Bottle Ctrl</button>
-                                    
-                                    {/* 3. Backup Data */}
                                     <button onClick={() => { handleBackup(); setShowMenu(false); }} className="flex items-center gap-3 p-4 hover:bg-white/5 rounded-xl text-gray-300 hover:text-white font-bold transition-all text-sm uppercase tracking-wide border border-transparent hover:border-white/10"><Icons.Save className="text-indigo-500" /> Backup Data</button>
-                                    
-                                    {/* 4. Local Reset */}
                                     <button onClick={handleLocalReset} className="flex items-center gap-3 p-4 hover:bg-red-500/10 hover:border hover:border-red-500/30 rounded-xl text-gray-300 hover:text-red-400 font-bold transition-all text-sm uppercase tracking-wide border border-transparent"><Icons.Refresh className="text-red-500" /> Local Reset</button>
                                 </div>
                             </>
                         )}
                     </div>
 
-                    {/* Zone Selector */}
                     <button onClick={() => setShowLoc(true)} className="w-full glass border border-white/10 p-5 rounded-2xl flex items-center justify-between mb-6 group active:scale-95 transition-all hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.1)] relative overflow-hidden">
                         <div className="absolute top-0 bottom-0 left-0 w-1 bg-cyan-500"></div>
                         <div className="flex items-center gap-4">
@@ -664,27 +690,18 @@
                             <div className="text-left">
                                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em] mb-1">Current Zone</div>
                                 <div className="text-white font-black text-xl leading-none uppercase tracking-wide group-hover:text-cyan-400 transition-colors">
-                                    {ZONES_CONFIG[loc] 
-                                        ? (ZONES_CONFIG[loc].find(z=>z.id===subZone)?.label || 'Select Zone') 
-                                        : loc === 'purchases' ? 'Purchases' 
-                                        : loc === 'barroluco' ? 'Barroluco' 
-                                        : 'Main Area'}
+                                    {ZONES_CONFIG[loc] ? (ZONES_CONFIG[loc].find(z=>z.id===subZone)?.label || 'Select Zone') : loc === 'purchases' ? 'Purchases' : loc === 'barroluco' ? 'Barroluco' : 'Main Area'}
                                 </div>
                             </div>
                         </div>
                         <Icons.ChevronDown className="text-gray-600 group-hover:text-white transition-colors"/>
                     </button>
 
-                    {/* Search Bar */}
                     <div className="relative mb-8 group">
                         <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl opacity-20 group-hover:opacity-40 transition duration-300 blur"></div>
-                        <div className="relative">
-                            <Icons.Search className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
-                            <input type="text" placeholder="Search item manually..." className="w-full bg-black border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-cyan-500/50 outline-none transition-all placeholder-gray-600 focus:bg-white/5" value={search} onChange={e=>setSearch(e.target.value)} />
-                        </div>
+                        <div className="relative"><Icons.Search className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" /><input type="text" placeholder="Search item manually..." className="w-full bg-black border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-cyan-500/50 outline-none transition-all placeholder-gray-600 focus:bg-white/5" value={search} onChange={e=>setSearch(e.target.value)} /></div>
                     </div>
 
-                    {/* Inventory List */}
                     {filteredData.map(cat => (
                         <div key={cat.category} className="mb-6">
                             <h3 className="text-purple-400 font-bold text-xs uppercase mb-3 ml-2 tracking-[0.2em] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)]">{cat.category}</h3>
@@ -693,12 +710,7 @@
                                     const qty = parseFloat(item[subZone || loc]) || 0;
                                     const hasQty = qty > 0;
                                     return (
-                                        <div key={item.id} onClick={() => setEditItem(item)} className={`
-                                            p-4 rounded-xl flex justify-between items-center cursor-pointer border transition-all duration-200
-                                            ${hasQty 
-                                                ? "glass bg-cyan-900/10 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.05)]" 
-                                                : "glass border-transparent hover:border-white/10 active:scale-[0.98]"}
-                                        `}>
+                                        <div key={item.id} onClick={() => setEditItem(item)} className={`p-4 rounded-xl flex justify-between items-center cursor-pointer border transition-all duration-200 ${hasQty ? "glass bg-cyan-900/10 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.05)]" : "glass border-transparent hover:border-white/10 active:scale-[0.98]"}`}>
                                             <div className={`font-medium transition-colors ${hasQty ? 'text-white' : 'text-gray-400'}`}>{item.name}</div>
                                             {hasQty && <div className="bg-cyan-500 text-black font-black font-mono px-3 py-1 rounded shadow-[0_0_10px_rgba(6,182,212,0.6)] text-sm">{qty}</div>}
                                         </div>
@@ -708,46 +720,19 @@
                         </div>
                     ))}
 
-                    {/* Floating Scan Button */}
                     <button onClick={() => setScanning(true)} className="fixed bottom-10 left-1/2 -translate-x-1/2 h-20 w-20 bg-black text-white rounded-full shadow-[0_0_40px_rgba(6,182,212,0.4)] flex items-center justify-center border-2 border-cyan-500 z-30 active:scale-90 transition-all group overflow-hidden">
                          <div className="absolute inset-0 bg-cyan-500 opacity-20 group-hover:opacity-40 animate-pulse"></div>
                         <Icons.Scan className="w-8 h-8 text-cyan-400 group-hover:text-white transition-colors relative z-10" />
                     </button>
 
-                    {pendingBarcode && (
-                        <LinkModal 
-                            barcode={pendingBarcode} 
-                            data={data} 
-                            onLink={handleLinkBarcode} 
-                            onClose={() => {
-                                setPendingBarcode(null);
-                                setTimeout(() => setScanning(true), 300); 
-                            }} 
-                        />
-                    )}
-
+                    {pendingBarcode && <LinkModal barcode={pendingBarcode} data={data} onLink={handleLinkBarcode} onClose={() => { setPendingBarcode(null); setTimeout(() => setScanning(true), 300); }} />}
                     {showPremium && <PremiumControlModal onClose={() => setShowPremium(false)} data={data} onUpdateStickers={updateItemStickers} />}
                     {showPurchases && <PurchasesLogModal onClose={() => setShowPurchases(false)} data={data} />}
                     {showCheck && <ReviewModal onClose={() => setShowCheck(false)} data={data} onUpdate={handleUpdate} />}
                     {showLoc && <LocationModal onClose={() => setShowLoc(false)} onSelect={(l, s) => { setLoc(l); setSubZone(s); setShowLoc(false); }} />}
                     {scanning && <ScannerModal onScan={handleScan} onClose={() => setScanning(false)} />}
-                    
                     {calibratingItem && <BottleCalibrationModal item={calibratingItem} onClose={()=>setCalibratingItem(null)} onSave={saveBottleWeights} />}
-
-                    {editItem && (
-                        <QuickEditModal 
-                            item={editItem} 
-                            initialLocation={loc} 
-                            initialSubZone={subZone} 
-                            onClose={() => setEditItem(null)} 
-                            onOpenCalibration={setCalibratingItem}
-                            onContinue={() => {
-                                setEditItem(null);
-                                setTimeout(() => setScanning(true), 300); 
-                            }}
-                            onUpdate={handleUpdate} 
-                        />
-                    )}
+                    {editItem && <QuickEditModal item={editItem} initialLocation={loc} initialSubZone={subZone} onClose={() => setEditItem(null)} onOpenCalibration={setCalibratingItem} onContinue={() => { setEditItem(null); setTimeout(() => setScanning(true), 300); }} onUpdate={handleUpdate} />}
                 </div>
             );
         }
