@@ -545,7 +545,7 @@
                 </div>
             );
         };
-        // --- PARTE 4: MODALES AUXILIARES & APP PRINCIPAL ---
+        // --- PARTE 4: MODALES AUXILIARES & APP PRINCIPAL (ACORDEÓN) ---
 
         const LocationModal = ({ onClose, onSelect }) => {
             const locs = [
@@ -610,8 +610,19 @@
             const [calibratingItem, setCalibratingItem] = useState(null);
             const [isOnline, setIsOnline] = useState(navigator.onLine);
             
+            // Bluetooth Persistente
             const [scaleWeight, setScaleWeight] = useState("");
             const [isScaleConnected, setIsScaleConnected] = useState(false);
+
+            // --- NUEVO: ESTADO PARA CATEGORÍAS EXPANDIDAS ---
+            const [expandedCats, setExpandedCats] = useState({});
+
+            const toggleCategory = (catName) => {
+                setExpandedCats(prev => ({
+                    ...prev,
+                    [catName]: !prev[catName]
+                }));
+            };
 
             useEffect(() => {
                 const handleStatus = () => setIsOnline(navigator.onLine);
@@ -663,7 +674,7 @@
             };
 
             const handleLocalReset = () => {
-                if(!confirm("⚠️ START NEW WEEK?\n\nThis will reset active counts to 0 and save them as 'Last Count' for each zone.")) return;
+                if(!confirm("⚠️ START NEW WEEK?\n\nThis will reset active counts to 0 and save them as 'Last Count'.")) return;
                 const resetData = data.map(cat => ({ ...cat, items: cat.items.map(i => { const resetItem = { ...i }; 
                     Object.values(ZONES_CONFIG).forEach(zoneArr => { zoneArr.forEach(z => { resetItem[`last_${z.id}`] = parseFloat(i[z.id]) || 0; resetItem[z.id] = 0; }); });
                     ['bar1', 'bar2', 'bodega', 'barroluco', 'purchases'].forEach(k => { resetItem[`last_${k}`] = parseFloat(i[k]) || 0; resetItem[k] = 0; });
@@ -752,23 +763,40 @@
                         <div className="relative"><Icons.Search className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" /><input type="text" placeholder="Search item manually..." className="w-full bg-black border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-cyan-500/50 outline-none transition-all placeholder-gray-600 focus:bg-white/5" value={search} onChange={e=>setSearch(e.target.value)} /></div>
                     </div>
 
-                    {filteredData.map(cat => (
-                        <div key={cat.category} className="mb-6">
-                            <h3 className="text-purple-400 font-bold text-xs uppercase mb-3 ml-2 tracking-[0.2em] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)]">{cat.category}</h3>
-                            <div className="space-y-2">
-                                {cat.items.map(item => {
-                                    const qty = parseFloat(item[subZone || loc]) || 0;
-                                    const hasQty = qty > 0;
-                                    return (
-                                        <div key={item.id} onClick={() => setEditItem(item)} className={`p-4 rounded-xl flex justify-between items-center cursor-pointer border transition-all duration-200 ${hasQty ? "glass bg-cyan-900/10 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.05)]" : "glass border-transparent hover:border-white/10 active:scale-[0.98]"}`}>
-                                            <div className={`font-medium transition-colors ${hasQty ? 'text-white' : 'text-gray-400'}`}>{item.name}</div>
-                                            {hasQty && <div className="bg-cyan-500 text-black font-black font-mono px-3 py-1 rounded shadow-[0_0_10px_rgba(6,182,212,0.6)] text-sm">{qty}</div>}
-                                        </div>
-                                    );
-                                })}
+                    {/* --- LISTA DE INVENTARIO CON ACORDEÓN --- */}
+                    {filteredData.map(cat => {
+                        // Si hay búsqueda, abrimos todo. Si no, usamos el estado.
+                        const isExpanded = search.length > 0 || expandedCats[cat.category];
+                        
+                        return (
+                            <div key={cat.category} className="mb-4 glass border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
+                                {/* CABECERA CLICKEABLE */}
+                                <button 
+                                    onClick={() => toggleCategory(cat.category)}
+                                    className="w-full p-5 flex justify-between items-center bg-white/5 hover:bg-white/10 active:bg-white/20 transition-colors"
+                                >
+                                    <h3 className="text-purple-400 font-bold text-xs uppercase tracking-[0.2em] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)] text-left">{cat.category}</h3>
+                                    <Icons.ChevronDown className={`text-gray-500 w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-cyan-400' : ''}`} />
+                                </button>
+
+                                {/* CONTENIDO DESPLEGABLE */}
+                                {isExpanded && (
+                                    <div className="p-2 space-y-2 bg-black/20 animate-in">
+                                        {cat.items.map(item => {
+                                            const qty = parseFloat(item[subZone || loc]) || 0;
+                                            const hasQty = qty > 0;
+                                            return (
+                                                <div key={item.id} onClick={() => setEditItem(item)} className={`p-4 rounded-xl flex justify-between items-center cursor-pointer border transition-all duration-200 ${hasQty ? "glass bg-cyan-900/10 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.05)]" : "glass border-transparent hover:border-white/10 active:scale-[0.98]"}`}>
+                                                    <div className={`font-medium transition-colors ${hasQty ? 'text-white' : 'text-gray-400'}`}>{item.name}</div>
+                                                    {hasQty && <div className="bg-cyan-500 text-black font-black font-mono px-3 py-1 rounded shadow-[0_0_10px_rgba(6,182,212,0.6)] text-sm">{qty}</div>}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
 
                     <button onClick={() => setScanning(true)} className="fixed bottom-10 left-1/2 -translate-x-1/2 h-20 w-20 bg-black text-white rounded-full shadow-[0_0_40px_rgba(6,182,212,0.4)] flex items-center justify-center border-2 border-cyan-500 z-30 active:scale-90 transition-all group overflow-hidden">
                          <div className="absolute inset-0 bg-cyan-500 opacity-20 group-hover:opacity-40 animate-pulse"></div>
@@ -783,7 +811,6 @@
                     {scanning && <ScannerModal onScan={handleScan} onClose={() => setScanning(false)} />}
                     {calibratingItem && <BottleCalibrationModal item={calibratingItem} onClose={()=>setCalibratingItem(null)} onSave={saveBottleWeights} />}
                     
-                    {/* QUICK EDIT CON PROPS DE BLUETOOTH */}
                     {editItem && (
                         <QuickEditModal 
                             item={editItem} 
