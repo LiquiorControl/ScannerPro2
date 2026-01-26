@@ -301,8 +301,7 @@
                 </div>
             );
         };
-    // --- PARTE 3: QUICK EDIT MODAL (CORREGIDO) ---
-        
+  // --- QUICK EDIT MODAL (CON BOTÓN DE SUMA PARA BALANZA) ---
         const QuickEditModal = ({ 
             item, 
             onClose, 
@@ -317,81 +316,41 @@
         }) => {
             const [value, setValue] = useState(0);
             const [manualGrams, setManualGrams] = useState("");
+            const [scaleDetectedUnits, setScaleDetectedUnits] = useState(0); // Almacena lo que la balanza ve ahora
             
-            // Configuración de Zonas
             const zones = ZONES_CONFIG[initialLocation] || [];
             const subZoneId = initialSubZone || (zones[0]?.id);
             const subZoneLabel = zones.find(z => z.id === subZoneId)?.label;
             
-            // Definición de campos
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
             const historyKey = `last_${targetField}`;
             const historyVal = item[historyKey] !== undefined ? item[historyKey] : '-';
             
-            // Lógica de tipo de zona
             const isOpenZone = ['bar1_shelf_open', 'bar1_well_1', 'bar1_well_2'].includes(initialSubZone);
             const isMultiCount = (subZoneId === 'bar1_cooler' && (item.name.toLowerCase().includes('corona') || item.name.toLowerCase().includes('modelo')));
             const isSmallGroup = !isOpenZone && !isMultiCount;
             
-            // Estado para Multi-Count (Coronas/Modelos)
             const [slots, setSlots] = useState(() => { 
                 if(isMultiCount && item.breakdown_bar1_cooler) return item.breakdown_bar1_cooler; 
                 return [0, 0, 0, 0]; 
             });
             
-            // Valor inicial guardado (Referencia para protección)
             const [startVal] = useState(() => parseFloat(item[targetField]) || 0);
 
             // Sincronización inicial
             useEffect(() => { 
-                if(!isMultiCount) {
-                    setValue(parseFloat(item[targetField]) || 0); 
-                } else { 
+                if(!isMultiCount) setValue(parseFloat(item[targetField]) || 0); 
+                else { 
                     const sum = slots.reduce((a, b) => a + (parseFloat(b)||0), 0); 
                     setValue(sum); 
                 } 
             }, [item, targetField, isMultiCount, slots]);
 
-            // --- LÓGICA DE BALANZA ---
-            const performCalculation = (gramsInput, isAuto = false) => {
-                const grams = parseFloat(gramsInput);
-                if (isNaN(grams) && gramsInput !== "") return;
-                
-                const full = parseFloat(item.weight_full);
-                const empty = parseFloat(item.weight_empty);
-                
-                if (!full || !empty) return; 
-                
-                const netLiquid = full - empty;
-                const currentLiquid = grams - empty;
-                
-                let calculatedUnits = currentLiquid / netLiquid;
-                if (calculatedUnits < 0) calculatedUnits = 0;
-                
-                const finalVal = Math.round(calculatedUnits * 100) / 100;
-
-                // PROTECCIÓN: Si es automático (balanza), da 0, y ya había valor -> NO actualizar
-                if (isAuto && finalVal === 0 && startVal > 0) {
-                    return; 
-                }
-
-                updateValue(finalVal);
-            };
-
-            // Escucha de cambios en la balanza
+            // --- ESCUCHA DE BALANZA ---
             useEffect(() => {
                 if (isOpenZone && scaleWeight !== null && scaleWeight !== undefined && scaleWeight !== "") {
-                    const grams = parseFloat(scaleWeight);
-                    const emptyWeight = parseFloat(item.weight_empty) || 0;
-
-                    // Protección extra: Si el peso es menor o igual al envase vacío (+10g margen)
-                    // y ya tenemos stock, ignoramos la lectura.
-                    if (grams <= (emptyWeight + 10) && startVal > 0) {
-                        return;
-                    }
-
                     setManualGrams(scaleWeight);
-                    performCalculation(scaleWeight, true);
+                    calculateFromWeight(scaleWeight, true); // true = origen automático
                 }
             }, [scaleWeight]);
 
@@ -426,7 +385,49 @@
                 if(delta>0) playSound('add'); else playSound('sub'); 
             };
             
-            const handleManualInput = (val) => { setManualGrams(val); performCalculation(val, false); };
+            // --- LÓGICA DE CÁLCULO Y SUMA ---
+            const calculateFromWeight = (gramsInput, isAuto = false) => {
+                const grams = parseFloat(gramsInput);
+                if (isNaN(grams) && gramsInput !== "") return;
+                
+                const full = parseFloat(item.weight_full);
+                const empty = parseFloat(item.weight_empty);
+                
+                if (!full || !empty) return; 
+                
+                const netLiquid = full - empty;
+                const currentLiquid = grams - empty;
+                let calculatedUnits = currentLiquid / netLiquid;
+                if (calculatedUnits < 0) calculatedUnits = 0;
+                
+                const finalVal = Math.round(calculatedUnits * 100) / 100;
+                
+                // Guardamos lo que "ve" la balanza en una variable temporal
+                setScaleDetectedUnits(finalVal);
+
+                // LÓGICA DE PROTECCIÓN / AUTO-SET:
+                // 1. Si el valor actual es 0 (estamos empezando), lo ponemos directo.
+                // 2. Si NO es 0 (ya pesamos una botella antes), NO lo ponemos directo.
+                //    El usuario deberá presionar el botón "SUMAR" que aparecerá.
+                if (value === 0 && isAuto) {
+                    updateValue(finalVal);
+                } 
+                // Si es manual (escribiste los gramos), asumimos que quieres reemplazar.
+                else if (!isAuto) {
+                    updateValue(finalVal);
+                }
+            };
+
+            // Función para sumar lo que ve la balanza al total acumulado
+            const handleAddScaleToTotal = () => {
+                const next = Math.max(0, Math.round((value + scaleDetectedUnits) * 100) / 100);
+                updateValue(next);
+                playSound('add');
+                // Opcional: Limpiar el input visual para indicar que ya se sumó
+                // setManualGrams(""); 
+            };
+
+            const handleManualInput = (val) => { setManualGrams(val); calculateFromWeight(val, false); };
 
             const sessionDiff = Math.round((value - startVal) * 100) / 100; 
             const diffSign = sessionDiff > 0 ? "+" : ""; 
@@ -464,7 +465,7 @@
                                 </div>
                             </div>
 
-                            {/* CONTROLES (MULTI O NORMAL) */}
+                            {/* CONTROLES */}
                             {isMultiCount ? (
                                 <div className="w-full px-6 max-w-sm relative z-10">
                                     <div className="text-center text-xs text-cyan-500/70 font-bold mb-4 uppercase tracking-[0.2em]">Multi-Count Slots</div>
@@ -483,11 +484,26 @@
                                                         <span className="text-xs text-cyan-500 font-bold uppercase tracking-widest">Weight Calc</span>
                                                         <button onClick={onConnectScale} disabled={isScaleConnected} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all flex items-center gap-1 uppercase tracking-wider ${isScaleConnected ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)] cursor-default' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white'}`}><Icons.Bluetooth className="w-3 h-3" /> {isScaleConnected ? "Connected" : "Connect Scale"}</button>
                                                     </div>
-                                                    <div className="relative w-full group">
-                                                        <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur transition-opacity duration-500 ${manualGrams ? 'opacity-100' : 'opacity-0'}`}></div>
-                                                        <input type="number" placeholder="0" className={`relative w-full bg-black/60 border rounded-xl px-4 py-3 text-white font-mono text-center text-3xl outline-none transition-all placeholder-gray-700 ${isScaleConnected ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'border-white/20 focus:border-cyan-500 focus:shadow-[0_0_15px_rgba(6,182,212,0.3)]'}`} value={manualGrams} onChange={e=>handleManualInput(e.target.value)} />
-                                                        <div className="absolute right-4 top-5 text-gray-500 text-xs font-bold pointer-events-none">g</div>
-                                                        {manualGrams && <div className="absolute left-4 top-5 text-cyan-500 text-[10px] font-bold pointer-events-none animate-pulse">AUTO</div>}
+                                                    
+                                                    {/* INPUT Y BOTÓN DE SUMA */}
+                                                    <div className="flex gap-2">
+                                                        <div className="relative w-full group">
+                                                            <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur transition-opacity duration-500 ${manualGrams ? 'opacity-100' : 'opacity-0'}`}></div>
+                                                            <input type="number" placeholder="0" className={`relative w-full bg-black/60 border rounded-xl px-4 py-3 text-white font-mono text-center text-3xl outline-none transition-all placeholder-gray-700 ${isScaleConnected ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'border-white/20 focus:border-cyan-500 focus:shadow-[0_0_15px_rgba(6,182,212,0.3)]'}`} value={manualGrams} onChange={e=>handleManualInput(e.target.value)} />
+                                                            <div className="absolute right-4 top-5 text-gray-500 text-xs font-bold pointer-events-none">g</div>
+                                                            {manualGrams && <div className="absolute left-4 top-5 text-cyan-500 text-[10px] font-bold pointer-events-none animate-pulse">AUTO</div>}
+                                                        </div>
+                                                        
+                                                        {/* BOTÓN SUMAR (Aparece si hay valor total > 0 y la balanza detecta algo nuevo) */}
+                                                        {value > 0 && scaleDetectedUnits > 0 && (
+                                                            <button 
+                                                                onClick={handleAddScaleToTotal}
+                                                                className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl px-4 border border-blue-400/50 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-in flex flex-col items-center justify-center min-w-[80px]"
+                                                            >
+                                                                <span className="text-[10px] uppercase tracking-widest opacity-80">ADD</span>
+                                                                <span className="text-xl">+{scaleDetectedUnits}</span>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
