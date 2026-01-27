@@ -160,6 +160,8 @@
             Upload: (p) => <IconWrapper {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconWrapper>,
             Bluetooth: (p) => <IconWrapper {...p}><path d="m7 7 10 10-5 5V2l5 5L7 17"/></IconWrapper>
         };
+        // --- PARTE 2: MODALES AUXILIARES (CON ORDENAMIENTO POR TIEMPO) ---
+
         const LoginScreen = ({ onLogin }) => {
             const [pin, setPin] = useState("");
             const handlePress = (n) => {
@@ -231,7 +233,13 @@
         };
 
         const ReviewModal = ({ onClose, data, onUpdate }) => {
-            const mainLocs = [ { id: 'bar1', label: 'Bar 1', color: 'text-cyan-400', border: 'border-cyan-500' }, { id: 'bar2', label: 'Bar 2', color: 'text-purple-400', border: 'border-purple-500' }, { id: 'bodega', label: 'Storage', color: 'text-amber-400', border: 'border-amber-500' }, { id: 'barroluco', label: 'Barroluco', color: 'text-pink-400', border: 'border-pink-500' } ];
+            const mainLocs = [ 
+                { id: 'bar1', label: 'Bar 1', color: 'text-cyan-400', border: 'border-cyan-500' }, 
+                { id: 'bar2', label: 'Bar 2', color: 'text-purple-400', border: 'border-purple-500' }, 
+                { id: 'bodega', label: 'Storage', color: 'text-amber-400', border: 'border-amber-500' }, 
+                { id: 'barroluco', label: 'Barroluco', color: 'text-pink-400', border: 'border-pink-500' } 
+            ];
+            
             return (
                 <div className="fixed inset-0 z-50 flex flex-col animate-in backdrop-blur-xl bg-black/90">
                     <div className="p-4 bg-black/80 border-b border-white/10 flex justify-between items-center shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.8)]"><h2 className="text-xl font-bold text-white flex items-center gap-2"><Icons.List className="text-neon-cyan" /> Count Check</h2><button onClick={onClose} className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-xl font-bold border border-white/10 backdrop-blur-md transition-all">Close</button></div>
@@ -243,9 +251,17 @@
                             if (mainTotal === 0) return null;
                             return (
                                 <div key={main.id} className="space-y-3 relative">
-                                    <div className={`sticky top-0 z-10 glass-strong py-3 px-4 rounded-xl mb-4 flex justify-between items-center border-l-4 ${main.border}`}><h3 className={`font-black text-lg uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${main.color}`}>{main.label}</h3><span className="text-white font-mono text-sm font-bold bg-black/50 px-3 py-1 rounded border border-white/10 shadow-inner">Total: {mainTotal}</span></div>
+                                    <div className={`sticky top-0 z-10 glass-strong py-3 px-4 rounded-xl mb-4 flex justify-between items-center border-l-4 ${main.border}`}>
+                                        <h3 className={`font-black text-lg uppercase tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${main.color}`}>{main.label}</h3> 
+                                        <span className="text-white font-mono text-sm font-bold bg-black/50 px-3 py-1 rounded border border-white/10 shadow-inner">Total: {mainTotal}</span>
+                                    </div>
                                     {subZones.map(zone => { 
-                                        const zoneItems = data.flatMap(cat => cat.items.filter(i => (parseFloat(i[zone.id])||0) > 0)).map(i => ({...i, val: parseFloat(i[zone.id])})); 
+                                        // AQUI ESTÁ EL CAMBIO DE ORDEN: .sort() por last_updated (descendente)
+                                        const zoneItems = data.flatMap(cat => cat.items)
+                                            .filter(i => (parseFloat(i[zone.id])||0) > 0)
+                                            .map(i => ({...i, val: parseFloat(i[zone.id])}))
+                                            .sort((a, b) => (b.last_updated || 0) - (a.last_updated || 0)); // Lo más nuevo arriba
+
                                         if (zoneItems.length === 0) return null; 
                                         return (
                                             <div key={zone.id} className="pl-2 border-l border-white/5 ml-1 relative">
@@ -545,7 +561,7 @@
                 </div>
             );
         };
-        // --- PARTE 4: MODALES AUXILIARES & APP PRINCIPAL (ACORDEÓN) ---
+        // --- PARTE 4: MODALES AUXILIARES & APP PRINCIPAL ---
 
         const LocationModal = ({ onClose, onSelect }) => {
             const locs = [
@@ -614,7 +630,7 @@
             const [scaleWeight, setScaleWeight] = useState("");
             const [isScaleConnected, setIsScaleConnected] = useState(false);
 
-            // --- NUEVO: ESTADO PARA CATEGORÍAS EXPANDIDAS ---
+            // --- ESTADO PARA CATEGORÍAS EXPANDIDAS ---
             const [expandedCats, setExpandedCats] = useState({});
 
             const toggleCategory = (catName) => {
@@ -665,8 +681,23 @@
                 } catch (error) { console.error("Scale Error:", error); alert("Bluetooth Error: " + error.message); setIsScaleConnected(false); }
             };
 
+            // --- AQUI SE GUARDA LA HORA (TIMESTAMP) ---
             const handleUpdate = (id, fieldOrObj, val) => {
-                const newData = data.map(cat => ({ ...cat, items: cat.items.map(i => { if(i.id === id) { if(typeof fieldOrObj === 'object') return {...i, ...fieldOrObj}; return {...i, [fieldOrObj]: val}; } return i; }) }));
+                const timestamp = Date.now(); // Marca de tiempo actual
+                const newData = data.map(cat => ({
+                    ...cat,
+                    items: cat.items.map(i => {
+                        if(i.id === id) {
+                            if(typeof fieldOrObj === 'object') {
+                                // Actualización masiva (Quick Mode)
+                                return {...i, ...fieldOrObj, last_updated: timestamp};
+                            }
+                            // Actualización simple
+                            return {...i, [fieldOrObj]: val, last_updated: timestamp};
+                        }
+                        return i;
+                    })
+                }));
                 setData(newData);
                 const db = window.fb.getFirestore();
                 const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
@@ -763,23 +794,14 @@
                         <div className="relative"><Icons.Search className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" /><input type="text" placeholder="Search item manually..." className="w-full bg-black border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:border-cyan-500/50 outline-none transition-all placeholder-gray-600 focus:bg-white/5" value={search} onChange={e=>setSearch(e.target.value)} /></div>
                     </div>
 
-                    {/* --- LISTA DE INVENTARIO CON ACORDEÓN --- */}
                     {filteredData.map(cat => {
-                        // Si hay búsqueda, abrimos todo. Si no, usamos el estado.
                         const isExpanded = search.length > 0 || expandedCats[cat.category];
-                        
                         return (
                             <div key={cat.category} className="mb-4 glass border border-white/5 rounded-2xl overflow-hidden transition-all duration-300">
-                                {/* CABECERA CLICKEABLE */}
-                                <button 
-                                    onClick={() => toggleCategory(cat.category)}
-                                    className="w-full p-5 flex justify-between items-center bg-white/5 hover:bg-white/10 active:bg-white/20 transition-colors"
-                                >
+                                <button onClick={() => toggleCategory(cat.category)} className="w-full p-5 flex justify-between items-center bg-white/5 hover:bg-white/10 active:bg-white/20 transition-colors">
                                     <h3 className="text-purple-400 font-bold text-xs uppercase tracking-[0.2em] drop-shadow-[0_0_5px_rgba(168,85,247,0.4)] text-left">{cat.category}</h3>
                                     <Icons.ChevronDown className={`text-gray-500 w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-cyan-400' : ''}`} />
                                 </button>
-
-                                {/* CONTENIDO DESPLEGABLE */}
                                 {isExpanded && (
                                     <div className="p-2 space-y-2 bg-black/20 animate-in">
                                         {cat.items.map(item => {
