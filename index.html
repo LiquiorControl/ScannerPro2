@@ -317,7 +317,7 @@
                 </div>
             );
         };
-    // --- PARTE 3: QUICK EDIT MODAL (PURCHASES CON BOTÓN DE CASE) ---
+   // --- PARTE 3: QUICK EDIT MODAL (CORREGIDO: HISTORIAL EXACTO POR ZONA) ---
         
         const QuickEditModal = ({ 
             item, 
@@ -333,22 +333,21 @@
         }) => {
             const [value, setValue] = useState(0);
             const [manualGrams, setManualGrams] = useState("");
-            const [scaleAddedValue, setScaleAddedValue] = useState(0);
             
             const zones = ZONES_CONFIG[initialLocation] || [];
             const subZoneId = initialSubZone || (zones[0]?.id);
+            const subZoneLabel = zones.find(z => z.id === subZoneId)?.label;
+            
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
             
-            // "Last" lee el On Hand de la Master Control
-            const historyVal = item.on_hand !== undefined ? item.on_hand : '-';
+            // --- CORRECCIÓN CRÍTICA: LEER EL SNAPSHOT DE LA ZONA, NO EL TOTAL ---
+            // Esto buscará 'last_bar1_shelf_open' (0.34) en vez de 'on_hand' (2.34)
+            const historyKey = `last_${targetField}`;
+            const historyVal = item[historyKey] !== undefined ? item[historyKey] : '-';
+            // ---------------------------------------------------------------------
             
-            // 1. DEFINICIÓN DE ZONAS
             const isOpenZone = ['bar1_shelf_open', 'bar1_well_1', 'bar1_well_2'].includes(initialSubZone) || initialLocation === 'barroluco';
-            
-            // --- CAMBIO AQUÍ: Agregamos 'purchases' a las zonas de Cases ---
             const isCaseZone = ['bar1_reaching', 'bar1_shelf_full', 'bodega_shelves'].includes(initialSubZone) || initialLocation === 'purchases';
-            // -------------------------------------------------------------
-
             const isMultiCount = (subZoneId === 'bar1_cooler' && (item.name.toLowerCase().includes('corona') || item.name.toLowerCase().includes('modelo')));
             const isSmallGroup = !isOpenZone && !isMultiCount;
             
@@ -358,6 +357,7 @@
             });
             
             const [startVal] = useState(() => parseFloat(item[targetField]) || 0);
+            const [scaleAddedValue, setScaleAddedValue] = useState(0);
 
             useEffect(() => { 
                 if(!isMultiCount) setValue(parseFloat(item[targetField]) || 0); 
@@ -367,11 +367,11 @@
                 } 
             }, [item, targetField, isMultiCount, slots]);
 
-            // Escucha de Balanza
+            // Escucha de Balanza (Suma Automática)
             useEffect(() => {
                 if (isOpenZone && scaleWeight !== null && scaleWeight !== undefined && scaleWeight !== "") {
                     setManualGrams(scaleWeight);
-                    performCalculation(scaleWeight, true);
+                    performCalculation(scaleWeight, true); 
                 }
             }, [scaleWeight]);
 
@@ -409,21 +409,27 @@
             const performCalculation = (gramsInput, isAuto = false) => {
                 const grams = parseFloat(gramsInput);
                 if (isNaN(grams) && gramsInput !== "") return;
+                
                 const full = parseFloat(item.weight_full);
                 const empty = parseFloat(item.weight_empty);
+                
                 if (!full || !empty) return; 
+                
                 const netLiquid = full - empty;
                 const currentLiquid = grams - empty;
+                
                 let calculatedUnits = currentLiquid / netLiquid;
                 if (calculatedUnits < 0) calculatedUnits = 0;
                 
                 const currentBottleValue = Math.round(calculatedUnits * 100) / 100;
                 setScaleAddedValue(currentBottleValue);
 
+                // Protección de cero
                 if (isAuto && currentBottleValue === 0 && startVal > 0) {
                     return; 
                 }
 
+                // Suma Automática
                 let finalVal;
                 if (isAuto) {
                     finalVal = startVal + currentBottleValue;
@@ -455,7 +461,7 @@
                         <div className="p-5 bg-black/40 border-b border-white/5 flex justify-between items-center">
                             <div>
                                 <h2 className="text-2xl font-black text-white leading-none tracking-tight">{item.name}</h2>
-                                <div className="text-xs text-cyan-400 font-mono mt-1 uppercase tracking-widest">{initialLocation} {zones.find(z => z.id === subZoneId)?.label || ''}</div>
+                                <div className="text-xs text-cyan-400 font-mono mt-1 uppercase tracking-widest">{initialLocation} {subZoneLabel ? `> ${subZoneLabel}` : ''}</div>
                             </div>
                             <button onClick={onClose} className="bg-white/5 hover:bg-white/10 text-white p-3 rounded-xl font-bold backdrop-blur-md transition-all active:scale-90">✕</button>
                         </div>
@@ -476,7 +482,8 @@
                                     )}
                                 </div>
                                 <div className="text-xl font-mono font-bold text-gray-500 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md flex flex-col items-center min-w-[100px]">
-                                    <span className="text-[10px] uppercase tracking-widest text-gray-600 mb-1">Last (OH)</span>
+                                    <span className="text-[10px] uppercase tracking-widest text-gray-600 mb-1">Last</span>
+                                    {/* Muestra el Historial de la Zona Específica */}
                                     <span className="text-gray-300 text-3xl">{historyVal}</span>
                                 </div>
                             </div>
@@ -489,7 +496,7 @@
                                 </div>
                             ) : (
                                 <>
-                                    {/* BALANZA (Open Zones + Barroluco) */}
+                                    {/* BALANZA */}
                                     {isOpenZone && (
                                         <div className="w-full px-6 max-w-sm relative z-10 mb-6 animate-in">
                                             {(!item.weight_full || !item.weight_empty) ? (
