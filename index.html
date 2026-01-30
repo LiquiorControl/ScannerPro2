@@ -317,7 +317,7 @@
                 </div>
             );
         };
-        // --- PARTE 3: QUICK EDIT MODAL (CORREGIDO "LAST COUNT") ---
+    // --- PARTE 3: QUICK EDIT MODAL (LAST = SNAPSHOT POR ZONA) ---
         
         const QuickEditModal = ({ 
             item, 
@@ -339,14 +339,16 @@
             const subZoneId = initialSubZone || (zones[0]?.id);
             const subZoneLabel = zones.find(z => z.id === subZoneId)?.label;
             
-            // LÓGICA DE HISTORIAL CORREGIDA
-            // 1. Identificamos la zona exacta (ej: 'bar1_well_1')
+            // Determinamos qué campo estamos editando (ej: 'bar1_shelf_full')
             const targetField = zones.length > 0 ? subZoneId : initialLocation;
-            // 2. Construimos la clave del historial (ej: 'last_bar1_well_1')
-            const historyKey = `last_${targetField}`;
-            // 3. Leemos el valor del item. Si no existe, ponemos un guion.
-            const historyVal = (item[historyKey] !== undefined && item[historyKey] !== null) ? item[historyKey] : '-';
             
+            // --- AQUI ESTA LA LOGICA DEL LAST ---
+            // Buscamos el campo 'last_' + el nombre de la zona actual.
+            // Si la Master hizo reset, este campo tendrá el valor de la semana pasada (ej: 3).
+            const historyKey = `last_${targetField}`;
+            const historyVal = item[historyKey] !== undefined ? item[historyKey] : '-';
+            
+            // Configuración de comportamiento de zonas
             const isOpenZone = ['bar1_shelf_open', 'bar1_well_1', 'bar1_well_2'].includes(initialSubZone) || initialLocation === 'barroluco';
             const isCaseZone = ['bar1_reaching', 'bar1_shelf_full', 'bodega_shelves'].includes(initialSubZone);
             const isMultiCount = (subZoneId === 'bar1_cooler' && (item.name.toLowerCase().includes('corona') || item.name.toLowerCase().includes('modelo')));
@@ -357,6 +359,7 @@
                 return [0, 0, 0, 0]; 
             });
             
+            // StartVal = Lo que hay ACTUALMENTE contado en este periodo (0 al inicio)
             const [startVal] = useState(() => parseFloat(item[targetField]) || 0);
 
             useEffect(() => { 
@@ -367,7 +370,7 @@
                 } 
             }, [item, targetField, isMultiCount, slots]);
 
-            // Escucha Balanza
+            // Escucha de Balanza (Auto Suma)
             useEffect(() => {
                 if (isOpenZone && scaleWeight !== null && scaleWeight !== undefined && scaleWeight !== "") {
                     setManualGrams(scaleWeight);
@@ -412,6 +415,7 @@
                 const full = parseFloat(item.weight_full);
                 const empty = parseFloat(item.weight_empty);
                 if (!full || !empty) return; 
+                
                 const netLiquid = full - empty;
                 const currentLiquid = grams - empty;
                 let calculatedUnits = currentLiquid / netLiquid;
@@ -420,16 +424,21 @@
                 const currentBottleValue = Math.round(calculatedUnits * 100) / 100;
                 setScaleAddedValue(currentBottleValue);
 
-                // Lógica de suma automática protegida
-                let finalVal = startVal + currentBottleValue;
+                // Protección de cero
+                if (isAuto && currentBottleValue === 0 && startVal > 0) {
+                    return; 
+                }
+
+                // Suma Automática
+                let finalVal;
+                if (isAuto) {
+                    finalVal = startVal + currentBottleValue;
+                } else {
+                    finalVal = currentBottleValue;
+                }
+
                 finalVal = Math.round(finalVal * 100) / 100;
                 updateValue(finalVal);
-            };
-
-            const handleAddScaleToTotal = () => {
-                const next = Math.max(0, Math.round((value + scaleAddedValue) * 100) / 100);
-                updateValue(next);
-                playSound('add');
             };
 
             const handleManualInput = (val) => { setManualGrams(val); performCalculation(val, false); };
@@ -466,15 +475,13 @@
                                         </div>
                                     )}
                                 </div>
-                                
-                                {/* CAJA "LAST COUNT" */}
+                                {/* AQUI SE MUESTRA EL HISTORIAL DE LA ZONA ESPECIFICA */}
                                 <div className="text-xl font-mono font-bold text-gray-500 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 backdrop-blur-md flex flex-col items-center min-w-[100px]">
                                     <span className="text-[10px] uppercase tracking-widest text-gray-600 mb-1">Last</span>
                                     <span className="text-gray-300 text-3xl">{historyVal}</span>
                                 </div>
                             </div>
 
-                            {/* --- CONTROLES --- */}
                             {isMultiCount ? (
                                 <div className="w-full px-6 max-w-sm relative z-10">
                                     <div className="text-center text-xs text-cyan-500/70 font-bold mb-4 uppercase tracking-[0.2em]">Multi-Count Slots</div>
@@ -482,7 +489,6 @@
                                 </div>
                             ) : (
                                 <>
-                                    {/* BALANZA (SOLO OPEN ZONES) */}
                                     {isOpenZone && (
                                         <div className="w-full px-6 max-w-sm relative z-10 mb-6 animate-in">
                                             {(!item.weight_full || !item.weight_empty) ? (
@@ -493,15 +499,13 @@
                                                         <span className="text-xs text-cyan-500 font-bold uppercase tracking-widest">Weight Calc</span>
                                                         <button onClick={onConnectScale} disabled={isScaleConnected} className={`text-[10px] font-bold px-3 py-1 rounded-full border transition-all flex items-center gap-1 uppercase tracking-wider ${isScaleConnected ? 'bg-blue-500/20 text-blue-400 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.3)] cursor-default' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white'}`}><Icons.Bluetooth className="w-3 h-3" /> {isScaleConnected ? "Connected" : "Connect Scale"}</button>
                                                     </div>
-                                                    
                                                     <div className="flex gap-2">
                                                         <div className="relative w-full group">
                                                             <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur transition-opacity duration-500 ${manualGrams ? 'opacity-100' : 'opacity-0'}`}></div>
                                                             <input type="number" placeholder="0" className={`relative w-full bg-black/60 border rounded-xl px-4 py-3 text-white font-mono text-center text-3xl outline-none transition-all placeholder-gray-700 ${isScaleConnected ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'border-white/20 focus:border-cyan-500 focus:shadow-[0_0_15px_rgba(6,182,212,0.3)]'}`} value={manualGrams} onChange={e=>handleManualInput(e.target.value)} />
                                                             <div className="absolute right-4 top-5 text-gray-500 text-xs font-bold pointer-events-none">g</div>
-                                                            {manualGrams && <div className="absolute left-4 top-5 text-cyan-500 text-[10px] font-bold pointer-events-none animate-pulse">AUTO</div>}
+                                                            {manualGrams && <div className="absolute left-4 top-5 text-cyan-500 text-[10px] font-bold pointer-events-none animate-pulse">AUTO SUM</div>}
                                                         </div>
-                                                        
                                                         {value > 0 && scaleAddedValue > 0 && (
                                                             <button onClick={handleAddScaleToTotal} className="bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl px-4 border border-blue-400/50 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-in flex flex-col items-center justify-center min-w-[80px]">
                                                                 <span className="text-[10px] uppercase tracking-widest opacity-80">ADD</span>
@@ -514,12 +518,9 @@
                                         </div>
                                     )}
 
-                                    {/* BOTONES +/- */}
                                     <div className="grid grid-cols-2 gap-5 w-full px-6 max-w-sm mb-5 relative z-10">
                                         <div className="flex flex-col gap-3 items-end">
-                                            {/* BOTÓN CASE -24 */}
                                             {isCaseZone && <button onClick={()=>handleDelta(-24)} className="w-full h-12 bg-purple-950/30 hover:bg-purple-900/50 text-purple-400 border border-purple-900/50 rounded-xl font-bold backdrop-blur-sm transition-all shadow-sm active:scale-95">- CASE (24)</button>}
-                                            
                                             {isSmallGroup ? (
                                                 <>
                                                     <button onClick={()=>handleDelta(-12)} className="w-full h-12 bg-red-950/30 hover:bg-red-900/50 text-red-400 border border-red-900/50 rounded-xl font-bold backdrop-blur-sm transition-all shadow-sm active:scale-95">- 12</button>
@@ -536,9 +537,7 @@
                                             <button onClick={()=>handleDelta(-1)} className="w-full h-16 bg-red-600/10 hover:bg-red-600/30 text-red-500 rounded-2xl font-black text-3xl shadow-[0_0_20px_rgba(220,38,38,0.15)] border border-red-500/40 active:scale-95 transition-all">- 1</button>
                                         </div>
                                         <div className="flex flex-col gap-3 items-start">
-                                            {/* BOTÓN CASE +24 */}
                                             {isCaseZone && <button onClick={()=>handleDelta(24)} className="w-full h-12 bg-purple-950/30 hover:bg-purple-900/50 text-purple-400 border border-purple-900/50 rounded-xl font-bold backdrop-blur-sm transition-all shadow-sm active:scale-95">+ CASE (24)</button>}
-
                                             {isSmallGroup ? (
                                                 <>
                                                     <button onClick={()=>handleDelta(12)} className="w-full h-12 bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-400 border border-emerald-900/50 rounded-xl font-bold backdrop-blur-sm transition-all shadow-sm active:scale-95">+ 12</button>
@@ -556,7 +555,6 @@
                                         </div>
                                     </div>
                                     
-                                    {/* DECIMALES */}
                                     {isOpenZone && (
                                         <div className="grid grid-cols-2 gap-5 w-full px-6 max-w-sm relative z-10">
                                             <button onClick={()=>handleDelta(-0.1)} className="bg-white/5 hover:bg-white/10 text-red-400 h-12 rounded-xl font-bold text-lg border border-white/5 transition-all active:scale-95">- 0.1</button>
@@ -572,7 +570,6 @@
                 </div>
             );
         };
-
         // --- PARTE 4: MODALES AUXILIARES & APP PRINCIPAL ---
 
         const LocationModal = ({ onClose, onSelect }) => {
@@ -642,15 +639,9 @@
             const [scaleWeight, setScaleWeight] = useState("");
             const [isScaleConnected, setIsScaleConnected] = useState(false);
 
-            // --- ESTADO PARA CATEGORÍAS EXPANDIDAS ---
+            // Estado Acordeón
             const [expandedCats, setExpandedCats] = useState({});
-
-            const toggleCategory = (catName) => {
-                setExpandedCats(prev => ({
-                    ...prev,
-                    [catName]: !prev[catName]
-                }));
-            };
+            const toggleCategory = (catName) => { setExpandedCats(prev => ({ ...prev, [catName]: !prev[catName] })); };
 
             useEffect(() => {
                 const handleStatus = () => setIsOnline(navigator.onLine);
@@ -693,18 +684,13 @@
                 } catch (error) { console.error("Scale Error:", error); alert("Bluetooth Error: " + error.message); setIsScaleConnected(false); }
             };
 
-            // --- AQUI SE GUARDA LA HORA (TIMESTAMP) ---
             const handleUpdate = (id, fieldOrObj, val) => {
-                const timestamp = Date.now(); // Marca de tiempo actual
+                const timestamp = Date.now();
                 const newData = data.map(cat => ({
                     ...cat,
                     items: cat.items.map(i => {
                         if(i.id === id) {
-                            if(typeof fieldOrObj === 'object') {
-                                // Actualización masiva (Quick Mode)
-                                return {...i, ...fieldOrObj, last_updated: timestamp};
-                            }
-                            // Actualización simple
+                            if(typeof fieldOrObj === 'object') return {...i, ...fieldOrObj, last_updated: timestamp};
                             return {...i, [fieldOrObj]: val, last_updated: timestamp};
                         }
                         return i;
@@ -716,17 +702,42 @@
                 window.fb.setDoc(window.fb.doc(db, path, 'master'), { items: newData }).catch(console.error);
             };
 
+            // --- RESET & GUARDADO DE HISTORIAL POR ZONA ---
             const handleLocalReset = () => {
-                if(!confirm("⚠️ START NEW WEEK?\n\nThis will reset active counts to 0 and save them as 'Last Count'.")) return;
-                const resetData = data.map(cat => ({ ...cat, items: cat.items.map(i => { const resetItem = { ...i }; 
-                    Object.values(ZONES_CONFIG).forEach(zoneArr => { zoneArr.forEach(z => { resetItem[`last_${z.id}`] = parseFloat(i[z.id]) || 0; resetItem[z.id] = 0; }); });
-                    ['bar1', 'bar2', 'bodega', 'barroluco', 'purchases'].forEach(k => { resetItem[`last_${k}`] = parseFloat(i[k]) || 0; resetItem[k] = 0; });
-                    return resetItem; }) }));
+                if(!confirm("⚠️ START NEW WEEK?\n\nThis will reset active counts to 0 and save them as 'Last Count' for each zone.")) return;
+                
+                const resetData = data.map(cat => ({
+                    ...cat,
+                    items: cat.items.map(i => {
+                        const resetItem = { ...i };
+                        
+                        // Guardar Snapshot de cada sub-zona específica
+                        Object.values(ZONES_CONFIG).forEach(zoneArr => {
+                            zoneArr.forEach(z => {
+                                // Ej: last_bar1_cooler guarda lo que hay ahora en bar1_cooler
+                                resetItem[`last_${z.id}`] = parseFloat(i[z.id]) || 0;
+                                // Resetea a 0
+                                resetItem[z.id] = 0;
+                            });
+                        });
+
+                        // Guardar Snapshot de zonas principales sueltas
+                        ['bar1', 'bar2', 'bodega', 'barroluco', 'purchases'].forEach(k => {
+                            resetItem[`last_${k}`] = parseFloat(i[k]) || 0;
+                            resetItem[k] = 0;
+                        });
+                        
+                        return resetItem;
+                    })
+                }));
+                
                 setData(resetData);
                 const db = window.fb.getFirestore();
                 const path = typeof __app_id !== 'undefined' ? `artifacts/${__app_id}/public/data/inventory` : 'inventory';
                 window.fb.setDoc(window.fb.doc(db, path, 'master'), { items: resetData }).catch(console.error);
-                playSound('sub'); setShowMenu(false);
+
+                playSound('sub'); 
+                setShowMenu(false);
             };
 
             const handleBackup = () => {
